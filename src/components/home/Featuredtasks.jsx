@@ -3,12 +3,6 @@
 import { motion } from "framer-motion";
 import TaskCard from "./home-components/Taskcard";
 
-// ─── Static seed data ─────────────────────────────────────────────────────────
-// TODO: Replace with real DB fetch — e.g. await getLatestOpenTasks({ limit: 6 })
-// Expected shape per task:
-//   { id, title, clientName, clientInitials, clientAvatarGradient,
-//     clientAvatarText, category, budget (number), dueDate (ISO string),
-//     proposalCount (number), featured (bool) }
 const STATIC_TASKS = [
   {
     id: "t1",
@@ -20,8 +14,6 @@ const STATIC_TASKS = [
     category: "UI Design",
     budget: 480,
     dueDate: "2026-06-28",
-    proposalCount: 9,
-    featured: true,
   },
   {
     id: "t2",
@@ -33,8 +25,6 @@ const STATIC_TASKS = [
     category: "Development",
     budget: 320,
     dueDate: "2026-06-24",
-    proposalCount: 4,
-    featured: false,
   },
   {
     id: "t3",
@@ -46,8 +36,6 @@ const STATIC_TASKS = [
     category: "Copywriting",
     budget: 750,
     dueDate: "2026-07-10",
-    proposalCount: 12,
-    featured: false,
   },
   {
     id: "t4",
@@ -59,8 +47,6 @@ const STATIC_TASKS = [
     category: "Marketing",
     budget: 600,
     dueDate: "2026-07-05",
-    proposalCount: 6,
-    featured: false,
   },
   {
     id: "t5",
@@ -72,8 +58,6 @@ const STATIC_TASKS = [
     category: "Video",
     budget: 950,
     dueDate: "2026-06-30",
-    proposalCount: 16,
-    featured: true,
   },
   {
     id: "t6",
@@ -85,25 +69,21 @@ const STATIC_TASKS = [
     category: "Development",
     budget: 1200,
     dueDate: "2026-07-15",
-    proposalCount: 2,
-    featured: false,
   },
 ];
 
-// ─── FeaturedTasks Section ────────────────────────────────────────────────────
-/**
- * Usage — static (now):       <FeaturedTasks />
- * Usage — with DB (future):   <FeaturedTasks tasks={serverFetchedTasks} totalOpen={127} />
- */
-export default function FeaturedTasks({ tasks, totalOpen }) {
+// TODO: Replace STATIC_TASKS with real DB fetch — e.g. await getLatestOpenTasks({ limit: 6 })
+// Expected shape per task:
+//   { id, title, clientName, clientInitials, clientAvatarGradient,
+//     clientAvatarText, category, budget (number), dueDate (ISO string) }
+
+export default function FeaturedTasks({ tasks }) {
   const displayTasks = tasks ?? STATIC_TASKS;
-  // TODO: replace 127 with real count from DB
-  const openCount = totalOpen ?? 127;
 
   return (
     <section className="relative w-full overflow-hidden py-24 bg-black">
 
-      {/* ── Top ambient glow ── */}
+      {/* Ambient glow */}
       <div
         className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[70vw] h-[35vh]"
         style={{
@@ -112,7 +92,7 @@ export default function FeaturedTasks({ tasks, totalOpen }) {
         }}
       />
 
-      {/* ── Section background iso grid (matches HeroBanner) ── */}
+      {/* Iso grid background */}
       <svg
         className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.03]"
         xmlns="http://www.w3.org/2000/svg"
@@ -125,14 +105,14 @@ export default function FeaturedTasks({ tasks, totalOpen }) {
         <rect width="100%" height="100%" fill="url(#ft-iso-grid)" />
       </svg>
 
-      {/* ── Content ── */}
+      {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
 
-        {/* ── Header ── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-10 pb-6"
+        {/* Header */}
+        <div
+          className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-10 pb-6"
           style={{ borderBottom: "1px solid rgba(255,77,0,0.12)" }}
         >
-          {/* Left */}
           <div>
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -147,12 +127,6 @@ export default function FeaturedTasks({ tasks, totalOpen }) {
                 color: "#ff4d00",
               }}
             >
-              <motion.span
-                animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.3, 1] }}
-                transition={{ duration: 2.4, repeat: Infinity }}
-                className="inline-block w-[6px] h-[6px] rounded-full"
-                style={{ background: "#ff4d00", boxShadow: "0 0 8px #ff4d00" }}
-              />
               Live Board
             </motion.div>
 
@@ -178,22 +152,13 @@ export default function FeaturedTasks({ tasks, totalOpen }) {
             </motion.h2>
           </div>
 
-          {/* Right */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="flex items-center gap-3 pb-1"
+            className="pb-1"
           >
-            {/* TODO: swap hardcoded number with `openCount` from DB */}
-            <span
-              className="text-white/35 font-bold"
-              style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: "0.08em" }}
-            >
-              {openCount} OPEN
-            </span>
-
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -209,39 +174,16 @@ export default function FeaturedTasks({ tasks, totalOpen }) {
           </motion.div>
         </div>
 
-        {/* ── Task grid — responsive 1 / 2 / 3 cols ── */}
+        {/* Task grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {displayTasks.map((task, i) => (
             <TaskCard key={task.id} task={task} index={i} />
           ))}
         </div>
 
-        {/* ── Load more strip ── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-          className="mt-12 flex justify-center"
-        >
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="inline-flex items-center gap-2.5 rounded-xl px-8 py-[14px] text-[14px] font-semibold text-white/65 cursor-pointer border-0"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            Load more tasks
-            {/* TODO: wire onClick to paginated DB fetch */}
-            <span style={{ color: "#ff4d00" }}>↓</span>
-          </motion.button>
-        </motion.div>
-
       </div>
 
-      {/* ── Bottom fade ── */}
+      {/* Bottom fade */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent" />
     </section>
   );

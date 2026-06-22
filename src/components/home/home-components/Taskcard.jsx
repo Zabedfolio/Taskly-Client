@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 
-// ─── Category config ──────────────────────────────────────────────────────────
 const CATEGORY_STYLES = {
   "UI Design":   { textColor: "#ff9a50", bg: "#ff640020", border: "#ff640038", icon: "🎨" },
   "Development": { textColor: "#50d4ff", bg: "#00aaff1a", border: "#00aaff33", icon: "⚡" },
@@ -11,7 +10,6 @@ const CATEGORY_STYLES = {
   "Video":       { textColor: "#fb7185", bg: "#f032501a", border: "#f0325033", icon: "🎬" },
 };
 
-// ─── Deadline urgency ─────────────────────────────────────────────────────────
 function getDeadlineColor(dueDateStr) {
   const daysLeft = Math.ceil((new Date(dueDateStr) - new Date()) / 86400000);
   if (daysLeft <= 3) return "#fb7185";
@@ -23,32 +21,6 @@ function formatDate(dueDateStr) {
   return new Date(dueDateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-// ─── Proposal avatars ─────────────────────────────────────────────────────────
-const AV_COLORS = ["#7c3aed","#0891b2","#b45309","#059669","#f43f5e","#8b5cf6"];
-const AV_TEXT   = ["#e9d5ff","#cffafe","#fef3c7","#d1fae5","#ffffff","#ede9fe"];
-
-function ProposalAvatars({ count }) {
-  const shown = Math.min(count, 3);
-  const label = count <= 2 ? `${count} proposal · new` : count >= 10 ? `${count} proposals · hot` : `${count} proposals`;
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex">
-        {Array.from({ length: shown }).map((_, i) => (
-          <div
-            key={i}
-            className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[7px] font-extrabold border-[1.5px] border-black"
-            style={{ background: AV_COLORS[i], color: AV_TEXT[i], marginLeft: i === 0 ? 0 : -5, zIndex: shown - i }}
-          >
-            {String.fromCharCode(65 + i)}
-          </div>
-        ))}
-      </div>
-      <span className="text-[10px] font-medium text-white/30">{label}</span>
-    </div>
-  );
-}
-
-// ─── TaskCard ─────────────────────────────────────────────────────────────────
 export default function TaskCard({ task, index = 0 }) {
   const cat     = CATEGORY_STYLES[task.category] ?? CATEGORY_STYLES["Development"];
   const dlColor = getDeadlineColor(task.dueDate);
@@ -66,16 +38,7 @@ export default function TaskCard({ task, index = 0 }) {
         border: "1px solid rgba(255,255,255,0.07)",
       }}
     >
-      {/* Hover gradient overlay */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl pointer-events-none"
-        style={{ background: "linear-gradient(135deg,rgba(255,77,0,0.07) 0%,transparent 60%)" }}
-        initial={{ opacity: 0 }}
-        whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-      />
-
-      {/* Top accent bar — slides in on hover */}
+      {/* Top accent bar */}
       <motion.div
         className="h-[3px] w-full"
         style={{ background: "linear-gradient(90deg,#ff4d00,#ff8c42,transparent)", transformOrigin: "left" }}
@@ -84,27 +47,10 @@ export default function TaskCard({ task, index = 0 }) {
         transition={{ duration: 0.3 }}
       />
 
-      {/* Featured badge */}
-      {task.featured && (
-        <div
-          className="absolute top-[14px] right-[14px] text-[#ff4d00] rounded-[5px] px-[7px] py-[3px]"
-          style={{
-            fontFamily: "'JetBrains Mono',monospace",
-            fontSize: 8, fontWeight: 700, letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            background: "rgba(255,77,0,0.10)",
-            border: "1px solid rgba(255,77,0,0.30)",
-          }}
-        >
-          ★ Featured
-        </div>
-      )}
-
-      {/* ── Card body ── */}
       <div className="flex flex-col flex-1 p-[22px] gap-0">
 
-        {/* Row 1: Category pill + live dot */}
-        <div className="flex items-start justify-between gap-3 mb-[14px]">
+        {/* Category pill */}
+        <div className="mb-[14px]">
           <span
             className="inline-flex items-center gap-[5px] rounded-[6px] px-[9px] py-[4px] whitespace-nowrap"
             style={{
@@ -118,15 +64,9 @@ export default function TaskCard({ task, index = 0 }) {
           >
             {cat.icon} {task.category}
           </span>
-          <motion.span
-            className="w-[7px] h-[7px] rounded-full mt-[3px] shrink-0"
-            style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e88" }}
-            animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.25, 1] }}
-            transition={{ duration: 2.4, repeat: Infinity }}
-          />
         </div>
 
-        {/* Row 2: Title */}
+        {/* Title */}
         <p className="text-[15px] font-bold leading-[1.35] tracking-[-0.01em] text-white/90 mb-[16px]">
           {task.title}
         </p>
@@ -137,7 +77,7 @@ export default function TaskCard({ task, index = 0 }) {
           style={{ background: "linear-gradient(90deg,rgba(255,77,0,0.18),rgba(255,255,255,0.05),transparent)" }}
         />
 
-        {/* Row 3: Client info */}
+        {/* Client */}
         <div className="flex items-center gap-[9px] mb-[16px]">
           <div
             className="w-[30px] h-[30px] rounded-full shrink-0 flex items-center justify-center text-[11px] font-extrabold"
@@ -155,10 +95,9 @@ export default function TaskCard({ task, index = 0 }) {
           </div>
         </div>
 
-        {/* Row 4: Budget + Deadline + Bid — three columns */}
+        {/* Budget + Deadline */}
         <div className="flex items-stretch gap-[10px]">
 
-          {/* Budget block */}
           <div
             className="flex-1 min-w-0 rounded-[10px] px-[12px] py-[10px]"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
@@ -184,7 +123,6 @@ export default function TaskCard({ task, index = 0 }) {
             </div>
           </div>
 
-          {/* Deadline block */}
           <div
             className="flex-1 min-w-0 rounded-[10px] px-[12px] py-[10px]"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
@@ -210,27 +148,6 @@ export default function TaskCard({ task, index = 0 }) {
             </div>
           </div>
 
-          {/* Bid button */}
-          <motion.button
-            whileHover={{ scale: 1.06, boxShadow: "0 0 24px rgba(255,77,0,0.50)" }}
-            whileTap={{ scale: 0.95 }}
-            className="shrink-0 flex items-center justify-center gap-[5px] rounded-[10px] px-[18px] text-white text-[12px] font-bold tracking-[0.02em] cursor-pointer border-0"
-            style={{
-              background: "linear-gradient(135deg,#ff4d00,#cc3d00)",
-              boxShadow: "0 0 16px rgba(255,77,0,0.28)",
-              minHeight: "100%",
-            }}
-          >
-            Bid ↗
-          </motion.button>
-        </div>
-
-        {/* Row 5: Proposal strip */}
-        <div
-          className="flex items-center justify-between mt-[14px] pt-[10px]"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
-        >
-          <ProposalAvatars count={task.proposalCount} />
         </div>
 
       </div>

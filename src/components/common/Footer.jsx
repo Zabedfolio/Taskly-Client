@@ -80,16 +80,18 @@ export default function Footer() {
 
   return (
     <footer className="border-t border-white/10 bg-black">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-12 md:grid-cols-[1.3fr_1fr_1fr]">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:gap-10 sm:px-6 sm:py-12 md:grid-cols-[1.3fr_1fr_1fr]">
         <div>
-          <Link href="/" className="inline-flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#ff4d00] text-sm font-black text-white shadow-[0_0_20px_rgba(255,77,0,0.26)]">
-              T
-            </span>
-            <span className="text-xl font-black tracking-normal text-white">
-              Taskly
-            </span>
-          </Link>
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
+          <img
+            src="https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"
+            alt="Taskly logo"
+            className="h-8 w-8 rounded-[9px] object-cover shadow-[0_2px_8px_rgba(255,77,0,0.35)]"
+          />
+          <span className="text-base font-bold tracking-tight text-white sm:text-[17px]">
+            Taskly
+          </span>
+        </Link>
           <p className="mt-4 max-w-sm text-sm leading-6 text-white/45">
             Connect with skilled freelancers, post tasks, and get focused work
             delivered faster.
@@ -115,9 +117,9 @@ export default function Footer() {
           </h2>
           <a
             href="mailto:hello@taskly.com"
-            className="mt-4 inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-[#ff4d00]"
+            className="mt-4 inline-flex items-center gap-2 break-all text-sm text-white/55 transition hover:text-[#ff4d00]"
           >
-            <Mail size={15} strokeWidth={2} />
+            <Mail size={15} strokeWidth={2} className="shrink-0" />
             hello@taskly.com
           </a>
 
@@ -136,7 +138,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 px-6 py-5">
+      <div className="border-t border-white/10 px-4 py-5 sm:px-6">
         <p className="mx-auto max-w-6xl text-sm text-white/40">
           Copyright {year} Taskly. All rights reserved.
         </p>
