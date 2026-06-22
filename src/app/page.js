@@ -1,5 +1,6 @@
 import FeaturedTasks from "@/components/home/Featuredtasks";
 import HeroBanner from "@/components/home/HeroBanner";
+import TestimonialsShowcase from "@/components/home/TestimonialsShowcase";
 import TopFreelancers from "@/components/home/TopFreelancers";
 
 export default function Home() {
@@ -8,6 +9,7 @@ export default function Home() {
       <HeroBanner />
       <FeaturedTasks></FeaturedTasks>
       <TopFreelancers></TopFreelancers>
+      <TestimonialsShowcase></TestimonialsShowcase>
     </main>
   );
 }
