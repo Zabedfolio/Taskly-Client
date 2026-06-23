@@ -104,7 +104,7 @@ export default function Navbar() {
             Logout
           </motion.button>
         ) : (
-          <Link href="/login" className="hidden shrink-0 md:block">
+          <Link href="/auth/login" className="hidden shrink-0 md:block">
             <motion.button
               type="button"
               whileHover={{ scale: 1.03 }}
@@ -179,7 +179,7 @@ export default function Navbar() {
                   </button>
                 ) : (
                   <Link
-                    href="/login"
+                    href="/auth/login"
                     onClick={() => setIsMenuOpen(false)}
                     className="mx-2 mt-2 mb-1 rounded-xl px-4 py-2.5 text-center text-sm font-semibold text-white"
                     style={{
