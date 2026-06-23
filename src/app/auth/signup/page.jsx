@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Display, Person, PersonFill } from "@gravity-ui/icons";
 import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 // ─── World map dot data (lat/lng → x/y projection) ───────────────────────────
 function latLngToXY(lat, lng, width, height) {
@@ -419,6 +420,7 @@ export default function SignUpPage() {
     const [error, setError] = useState("");
     const [role, setRole] = useState("client"); // "client" | "freelancer"
     const [form, setForm] = useState({ name: "", email: "", imageUrl: "", password: "" });
+    const router = useRouter();
 
     function set(field) {
         return (e) => setForm(f => ({ ...f, [field]: e.target.value }));
@@ -431,58 +433,61 @@ export default function SignUpPage() {
         return null;
     }
 
+  
+
     async function handleSubmit(e) {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-        const formData = new FormData(e.target);
+    const formData = new FormData(e.target);
+    const name     = formData.get("name");
+    const email    = formData.get("email");
+    const imageUrl = formData.get("imageUrl");
+    const password = formData.get("password");
+    const role     = formData.get("role"); // "client" | "freelancer"
 
-        const name = formData.get("name");
-        const email = formData.get("email");
-        const imageUrl = formData.get("imageUrl");
-        const password = formData.get("password");
-        const role = formData.get("role");
-
-        if (!name?.trim()) {
-            setError("Full name is required.");
-            setLoading(false);
-            return;
-        }
-
-        if (!/\S+@\S+\.\S+/.test(email)) {
-            setError("Enter a valid email address.");
-            setLoading(false);
-            return;
-        }
-
-        const pwErr = validatePassword(password);
-
-        if (pwErr) {
-            setError(pwErr);
-            setLoading(false);
-            return;
-        }
-
-        const { data, error } = await authClient.signUp.email({
-            name,
-            email,
-            password,
-            image: imageUrl || undefined,
-            role,
-        });
-
-        if (error) {
-            setError(error.message || "Registration failed");
-            setLoading(false);
-            return;
-        }
-
-        console.log("User created:", data);
-        console.log("Selected role:", role);
-
+    if (!name?.trim()) {
+        setError("Full name is required.");
         setLoading(false);
+        return;
     }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+        setError("Enter a valid email address.");
+        setLoading(false);
+        return;
+    }
+    const pwErr = validatePassword(password);
+    if (pwErr) {
+        setError(pwErr);
+        setLoading(false);
+        return;
+    }
+
+    const { data, error } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+        image: imageUrl || undefined,
+        role,
+    });
+
+    if (error) {
+        setError(error.message || "Registration failed");
+        setLoading(false);
+        return;
+    }
+
+    // Redirect to role-specific dashboard
+    const DASHBOARD_ROUTES = {
+        client:     "/dashboard/client",
+        freelancer: "/dashboard/freelancer",
+        admin:      "/dashboard/admin",
+    };
+
+    router.push(DASHBOARD_ROUTES[role] ?? "/dashboard");
+    // keep loading=true so button stays disabled during navigation
+}
 
     function handleGoogle() {
         // Google users are always saved as Client

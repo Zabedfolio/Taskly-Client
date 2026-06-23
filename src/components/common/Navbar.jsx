@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { authClient, useSession } from "@/lib/auth-client";
@@ -13,20 +13,27 @@ const navLinks = [
   { label: "Browse Freelancers", href: "/freelancers" },
 ];
 
-const privateLinks = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Profile", href: "/profile" },
-];
+// ─── Role → dashboard route ───────────────────────────────────────────────────
+const DASHBOARD_ROUTES = {
+  client:     "/dashboard/client",
+  freelancer: "/dashboard/freelancer",
+  admin:      "/dashboard/admin",
+};
+
+function getDashboardHref(role) {
+  return DASHBOARD_ROUTES[role] ?? "/dashboard";
+}
 
 function NavLink({ href, children }) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = pathname === href || pathname?.startsWith(href + "/");
 
   return (
     <Link href={href} className="group relative px-3 py-2">
       <span
-        className={`relative z-10 text-sm font-medium transition-colors duration-300 ${isActive ? "text-white" : "text-white/55 group-hover:text-white"
-          }`}
+        className={`relative z-10 text-sm font-medium transition-colors duration-300 ${
+          isActive ? "text-white" : "text-white/55 group-hover:text-white"
+        }`}
       >
         {children}
       </span>
@@ -49,10 +56,23 @@ function NavLink({ href, children }) {
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: session, isPending } = useSession();
+  const router = useRouter();
   const user = session?.user;
   const isLoggedIn = !!user;
 
   console.log("Navbar user:", user);
+
+  const dashboardHref = getDashboardHref(user?.role);
+
+  // ─── Logout ───────────────────────────────────────────────────────────────
+  async function handleLogout() {
+    const { error } = await authClient.signOut();
+    if (error) {
+      console.error("Logout failed:", error);
+      return;
+    }
+    router.push("/auth/login");
+  }
 
   return (
     <motion.header
@@ -80,8 +100,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop links — absolutely centered on the navbar, independent of
-            how wide the logo or the right-side button happens to be */}
+        {/* Desktop nav links — centered */}
         <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 md:flex">
           {navLinks.map(({ label, href }) => (
             <NavLink key={href} href={href}>
@@ -89,14 +108,15 @@ export default function Navbar() {
             </NavLink>
           ))}
 
-          {isLoggedIn &&
-            privateLinks.map(({ label, href }) => (
-              <NavLink key={href} href={href}>
-                {label}
-              </NavLink>
-            ))}
+          {isLoggedIn && (
+            <>
+              <NavLink href={dashboardHref}>Dashboard</NavLink>
+              <NavLink href="/profile">Profile</NavLink>
+            </>
+          )}
         </div>
 
+        {/* Desktop right side */}
         {isLoggedIn ? (
           <div className="hidden shrink-0 items-center gap-2.5 md:flex">
             <img
@@ -104,19 +124,11 @@ export default function Navbar() {
               alt={user.name || "User avatar"}
               className="h-8 w-8 rounded-full object-cover ring-1 ring-white/15"
             />
-
             <motion.button
               type="button"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={async () => {
-                const { error } = await authClient.signOut();
-
-                if (error) {
-                  console.error("Logout failed:", error);
-                  return;
-                }
-              }}
+              onClick={handleLogout}
               className="flex items-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition-shadow duration-200 hover:shadow-[0_0_22px_rgba(255,255,255,0.25)]"
             >
               Logout
@@ -176,17 +188,24 @@ export default function Navbar() {
                   </Link>
                 ))}
 
-                {isLoggedIn &&
-                  privateLinks.map(({ label, href }) => (
+                {isLoggedIn && (
+                  <>
                     <Link
-                      key={href}
-                      href={href}
+                      href={dashboardHref}
                       onClick={() => setIsMenuOpen(false)}
                       className="rounded-xl px-4 py-3 text-sm font-medium text-white/75 transition-colors hover:bg-white/5 hover:text-white"
                     >
-                      {label}
+                      Dashboard
                     </Link>
-                  ))}
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="rounded-xl px-4 py-3 text-sm font-medium text-white/75 transition-colors hover:bg-white/5 hover:text-white"
+                    >
+                      Profile
+                    </Link>
+                  </>
+                )}
 
                 {isLoggedIn ? (
                   <div className="mx-2 mt-2 mb-1 flex items-center gap-2.5">
@@ -195,14 +214,9 @@ export default function Navbar() {
                       alt={user.name || "User avatar"}
                       className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-white/15"
                     />
-
                     <button
                       type="button"
-                      onClick={async () => {
-                        await authClient.signOut();
-                        setIsMenuOpen(false);
-                       
-                      }}
+                      onClick={() => { handleLogout(); setIsMenuOpen(false); }}
                       className="flex-1 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black"
                     >
                       Logout
