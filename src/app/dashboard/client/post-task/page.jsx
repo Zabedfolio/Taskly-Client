@@ -193,6 +193,7 @@ export default function ClientPostTask() {
             clientId: session?.user?.id,
             clientName: session?.user?.name,
             clientEmail: session?.user?.email,
+            status: "open"
         };
 
         if (!session?.user) {

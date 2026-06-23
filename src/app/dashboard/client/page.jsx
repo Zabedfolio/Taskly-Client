@@ -2,7 +2,7 @@ import React from 'react';
 
 const ClientDashboardHomePage = () => {
     return (
-        <div className='pt-25'>
+        <div>
             This is client dashboard home page
         </div>
     );

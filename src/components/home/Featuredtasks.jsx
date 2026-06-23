@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import TaskCard from "./home-components/Taskcard";
+import { getAllTasks } from "@/lib/api/home/getAllTasks";
 
 const STATIC_TASKS = [
   {
@@ -78,7 +80,67 @@ const STATIC_TASKS = [
 //     clientAvatarText, category, budget (number), dueDate (ISO string) }
 
 export default function FeaturedTasks({ tasks }) {
-  const displayTasks = tasks ?? STATIC_TASKS;
+  const [dbTasks, setDbTasks] = useState([]);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getAllTasks();
+        if (Array.isArray(data)) {
+          const mapped = data.map(t => {
+            const mapCategory = (cat) => {
+              if (!cat) return "Development";
+              if (cat.includes("UI") || cat.includes("Design")) return "UI Design";
+              if (cat.includes("Development") || cat.includes("Web") || cat.includes("Mobile")) return "Development";
+              if (cat.includes("Copy") || cat.includes("Content") || cat.includes("Writing")) return "Copywriting";
+              if (cat.includes("Marketing") || cat.includes("SEO")) return "Marketing";
+              if (cat.includes("Video") || cat.includes("Animation")) return "Video";
+              return "Development";
+            };
+
+            const getInitials = (name) => {
+              if (!name) return "??";
+              return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+            };
+
+            const GRADIENTS = [
+              "linear-gradient(135deg,#7c3aed,#4f46e5)",
+              "linear-gradient(135deg,#0891b2,#0e7490)",
+              "linear-gradient(135deg,#a78bfa,#7c3aed)",
+              "linear-gradient(135deg,#059669,#047857)",
+              "linear-gradient(135deg,#f43f5e,#e11d48)",
+              "linear-gradient(135deg,#f59e0b,#d97706)"
+            ];
+
+            const getGradient = (name) => {
+              if (!name) return GRADIENTS[0];
+              let sum = 0;
+              for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+              return GRADIENTS[sum % GRADIENTS.length];
+            };
+
+            return {
+              id: t._id,
+              title: t.title,
+              clientName: t.clientName || "Client",
+              clientInitials: getInitials(t.clientName),
+              clientAvatarGradient: getGradient(t.clientName),
+              clientAvatarText: "#ffffff",
+              category: mapCategory(t.category),
+              budget: t.budget || 0,
+              dueDate: t.deadline || new Date().toISOString()
+            };
+          });
+          setDbTasks(mapped.reverse().slice(0, 6));
+        }
+      } catch (err) {
+        console.error("Error loading featured tasks:", err);
+      }
+    }
+    load();
+  }, []);
+
+  const displayTasks = tasks ?? (dbTasks.length > 0 ? dbTasks : STATIC_TASKS);
 
   return (
     <section className="relative w-full overflow-hidden py-24 bg-black">

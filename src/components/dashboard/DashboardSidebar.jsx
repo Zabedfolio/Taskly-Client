@@ -14,9 +14,10 @@ import Gear from '@gravity-ui/icons/Gear';
 import Persons from '@gravity-ui/icons/Persons';
 import {
     Bookmark, CreditCard, Factory, FileText,
-    Magnifier, ArrowRightFromSquare, CircleXmark,
+    Magnifier, ArrowRightFromSquare,
     ChartBar, Plus, Xmark,
 } from '@gravity-ui/icons';
+import UnauthorizedPage from '@/app/unauthorized/page';
 
 // ─── Nav map per role ─────────────────────────────────────────────────────────
 const NAV_MAP = {
@@ -47,11 +48,8 @@ const NAV_MAP = {
 const ALLOWED_ROLES = ['client', 'freelancer', 'admin'];
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
-// The external Navbar is: fixed, top-4 (16px) on mobile / top-5 (20px) on sm+
-// The nav pill is ~56px tall. Total space consumed = offset + pill + gap ≈ 84px.
-// We use CSS variables so media queries can override cleanly.
-const NAVBAR_HEIGHT = 84;          // px — vertical space the fixed Navbar occupies
-const DASH_TOPBAR_HEIGHT = 56;     // px — the dashboard's own mobile top-bar
+const NAVBAR_HEIGHT = 84;
+const DASH_TOPBAR_HEIGHT = 56;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getInitials(name) {
@@ -88,29 +86,6 @@ function LoadingSkeleton() {
                 </span>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-    );
-}
-
-// ─── Unauthorized page ────────────────────────────────────────────────────────
-function UnauthorizedPage({ role }) {
-    const router = useRouter();
-    return (
-        <div style={{ minHeight: '100vh', background: '#080808', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif', padding: 24 }}>
-            <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 60% 40% at 50% 30%, rgba(255,77,0,0.05) 0%, transparent 70%)' }} />
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ maxWidth: 440, width: '100%', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: 72, height: 72, borderRadius: 20, margin: '0 auto 24px', background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <CircleXmark width={32} height={32} style={{ color: '#ff4d00' }} />
-                </div>
-                <h1 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 12 }}>Access Denied</h1>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, marginBottom: 32 }}>
-                    {role ? `Your role "${role}" doesn't have permission here.` : 'Please sign in to continue.'}
-                </p>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                    <button onClick={() => router.back()} style={{ padding: '10px 20px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.65)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>← Go Back</button>
-                    <Link href="/" style={{ padding: '10px 20px', borderRadius: 10, background: 'linear-gradient(135deg, #ff4d00, #cc3d00)', color: '#fff', fontSize: 13.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center' }}>Go to Home</Link>
-                </div>
-            </motion.div>
         </div>
     );
 }
@@ -288,9 +263,13 @@ export default function DashboardSidebar({ children }) {
 
     if (isPending || loggingOut) return <LoadingSkeleton />;
     if (!user) { router.replace('/auth/login'); return <LoadingSkeleton />; }
+
+    // ── Role guard → new futuristic UnauthorizedPage ──────────────────────────
     if (!ALLOWED_ROLES.includes(user.role)) return <UnauthorizedPage role={user.role} />;
     const routeRole = pathname?.split('/')[2];
-    if (routeRole && ALLOWED_ROLES.includes(routeRole) && routeRole !== user.role) return <UnauthorizedPage role={user.role} />;
+    if (routeRole && ALLOWED_ROLES.includes(routeRole) && routeRole !== user.role) {
+        return <UnauthorizedPage role={user.role} />;
+    }
 
     const navItems = NAV_MAP[user.role] || NAV_MAP.client;
     const activeId = routeToNavId(pathname, navItems);
@@ -308,19 +287,8 @@ export default function DashboardSidebar({ children }) {
                     -webkit-text-fill-color: #fff !important;
                 }
 
-                /*
-                 * The external Navbar is fixed: top-4 (16px) on mobile, top-5 (20px) on sm+
-                 * The nav pill is ~56px tall.
-                 * Total navbar footprint:
-                 *   mobile: 16 + 56 + 12 (breathing gap) = 84px
-                 *   desktop (sm+): 20 + 56 + 12 = 88px
-                 *
-                 * Dashboard sidebar must start BELOW that.
-                 */
-
                 .dash-wrapper {
                     display: flex;
-                    /* Push the whole dashboard below the fixed navbar */
                     margin-top: ${NAVBAR_HEIGHT}px;
                     min-height: calc(100vh - ${NAVBAR_HEIGHT}px);
                     background: #080808;
@@ -328,9 +296,7 @@ export default function DashboardSidebar({ children }) {
                     position: relative;
                 }
 
-                /* Desktop sidebar */
                 .desktop-sidebar {
-                    /* Stick to viewport but start below navbar */
                     position: sticky;
                     top: ${NAVBAR_HEIGHT}px;
                     height: calc(100vh - ${NAVBAR_HEIGHT}px);
@@ -343,7 +309,6 @@ export default function DashboardSidebar({ children }) {
                     flex-direction: column;
                 }
 
-                /* Mobile topbar — sits just below the external navbar */
                 .dash-mobile-topbar {
                     display: none;
                     position: fixed;
@@ -367,9 +332,7 @@ export default function DashboardSidebar({ children }) {
                 @media (max-width: 1023px) {
                     .desktop-sidebar { display: none !important; }
                     .dash-mobile-topbar { display: flex !important; }
-                    /* push content below navbar + dashboard topbar */
                     .dash-main { padding-top: ${DASH_TOPBAR_HEIGHT}px; }
-                    /* on sm+ the navbar sits at top-5 (20px) */
                 }
                 @media (min-width: 640px) {
                     .dash-wrapper { margin-top: 88px; min-height: calc(100vh - 88px); }
@@ -380,7 +343,7 @@ export default function DashboardSidebar({ children }) {
 
             <div className="dash-wrapper">
 
-                {/* ── Mobile topbar — visible only on < 1024px ── */}
+                {/* ── Mobile topbar ── */}
                 <div className="dash-mobile-topbar">
                     <button
                         onClick={() => setMobileOpen(true)}
@@ -417,7 +380,7 @@ export default function DashboardSidebar({ children }) {
                     )}
                 </AnimatePresence>
 
-                {/* ── Mobile drawer — slides in from left, starts below navbar ── */}
+                {/* ── Mobile drawer ── */}
                 <AnimatePresence>
                     {mobileOpen && (
                         <motion.aside
@@ -426,7 +389,6 @@ export default function DashboardSidebar({ children }) {
                             transition={{ type: 'tween', duration: 0.22 }}
                             style={{
                                 position: 'fixed',
-                                /* Drawer starts right below the external navbar */
                                 top: NAVBAR_HEIGHT,
                                 left: 0, zIndex: 50,
                                 width: 272,
