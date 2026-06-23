@@ -308,7 +308,7 @@ export default function LoginPage() {
             email,
             password,
             rememberMe,
-            callbackURL: "/dashboard",
+            callbackURL: "/"
         });
 
         if (error) {

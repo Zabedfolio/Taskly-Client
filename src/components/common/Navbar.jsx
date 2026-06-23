@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -25,9 +25,8 @@ function NavLink({ href, children }) {
   return (
     <Link href={href} className="group relative px-3 py-2">
       <span
-        className={`relative z-10 text-sm font-medium transition-colors duration-300 ${
-          isActive ? "text-white" : "text-white/55 group-hover:text-white"
-        }`}
+        className={`relative z-10 text-sm font-medium transition-colors duration-300 ${isActive ? "text-white" : "text-white/55 group-hover:text-white"
+          }`}
       >
         {children}
       </span>
@@ -105,10 +104,19 @@ export default function Navbar() {
               alt={user.name || "User avatar"}
               className="h-8 w-8 rounded-full object-cover ring-1 ring-white/15"
             />
+
             <motion.button
               type="button"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
+              onClick={async () => {
+                const { error } = await authClient.signOut();
+
+                if (error) {
+                  console.error("Logout failed:", error);
+                  return;
+                }
+              }}
               className="flex items-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition-shadow duration-200 hover:shadow-[0_0_22px_rgba(255,255,255,0.25)]"
             >
               Logout
@@ -187,9 +195,14 @@ export default function Navbar() {
                       alt={user.name || "User avatar"}
                       className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-white/15"
                     />
+
                     <button
                       type="button"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={async () => {
+                        await authClient.signOut();
+                        setIsMenuOpen(false);
+                       
+                      }}
                       className="flex-1 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black"
                     >
                       Logout

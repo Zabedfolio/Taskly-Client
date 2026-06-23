@@ -469,7 +469,7 @@ export default function SignUpPage() {
             email,
             password,
             image: imageUrl || undefined,
-            callbackURL: "/dashboard",
+            role,
         });
 
         if (error) {
