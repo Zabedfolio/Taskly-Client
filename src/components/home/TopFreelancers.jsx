@@ -1,127 +1,45 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import FreelancerCard from "./home-components/FreelancerCard";
+import { getAllFreelancers } from "@/lib/api/home/getAllFreelancer";
 
-// ─── Static seed data ──────────────────────────────────────────────────────────
-// TODO: Replace with real DB fetch — e.g. await getTopFreelancers({ limit: 6 })
-// Expected shape per freelancer:
-//   { id, name, avatarUrl, skills (string[]), rating (number), jobsDone (number) }
+// ─── Static fallback (shown while loading / on error) ─────────────────────────
 const STATIC_FREELANCERS = [
-  {
-    id: "f1",
-    name: "Lena Müller",
-    title: "Senior UI/UX Designer",
-    avatarUrl: "https://i.pravatar.cc/150?img=47",
-    skills: ["Figma", "Motion", "Design Systems"],
-    rating: 4.9,
-    jobsDone: 214,
-  },
-  {
-    id: "f2",
-    name: "Arjun Sharma",
-    title: "Full-Stack Engineer",
-    avatarUrl: "https://i.pravatar.cc/150?img=12",
-    skills: ["React", "Node.js", "PostgreSQL"],
-    rating: 4.8,
-    jobsDone: 178,
-  },
-  {
-    id: "f3",
-    name: "Camille Dupont",
-    title: "Brand & Copywriter",
-    avatarUrl: "https://i.pravatar.cc/150?img=32",
-    skills: ["SEO Copy", "Brand Voice", "B2B SaaS"],
-    rating: 5.0,
-    jobsDone: 312,
-  },
-  {
-    id: "f4",
-    name: "Marcus Cole",
-    title: "Performance Marketer",
-    avatarUrl: "https://i.pravatar.cc/150?img=68",
-    skills: ["Meta Ads", "Google Ads", "Analytics"],
-    rating: 4.7,
-    jobsDone: 93,
-  },
-  {
-    id: "f5",
-    name: "Yuki Tanaka",
-    title: "Motion & Video Editor",
-    avatarUrl: "https://i.pravatar.cc/150?img=55",
-    skills: ["After Effects", "Premiere", "3D"],
-    rating: 4.9,
-    jobsDone: 261,
-  },
-  {
-    id: "f6",
-    name: "Ivan Petrov",
-    title: "Backend & DevOps Engineer",
-    avatarUrl: "https://i.pravatar.cc/150?img=61",
-    skills: ["AWS", "Docker", "Go", "Redis"],
-    rating: 4.8,
-    jobsDone: 140,
-  },
+  { _id: "f1", name: "Lena Müller",   image: "https://i.pravatar.cc/150?img=47", skills: ["Figma", "Motion", "Design Systems"], rating: 4.9, completedJobs: 214, emailVerified: true },
+  { _id: "f2", name: "Arjun Sharma",  image: "https://i.pravatar.cc/150?img=12", skills: ["React", "Node.js", "PostgreSQL"],    rating: 4.8, completedJobs: 178, emailVerified: true },
+  { _id: "f3", name: "Camille Dupont",image: "https://i.pravatar.cc/150?img=32", skills: ["SEO Copy", "Brand Voice", "B2B"],    rating: 5.0, completedJobs: 312, emailVerified: false },
+  { _id: "f4", name: "Marcus Cole",   image: "https://i.pravatar.cc/150?img=68", skills: ["Meta Ads", "Google Ads"],            rating: 4.7, completedJobs: 93,  emailVerified: true },
+  { _id: "f5", name: "Yuki Tanaka",   image: "https://i.pravatar.cc/150?img=55", skills: ["After Effects", "Premiere", "3D"],   rating: 4.9, completedJobs: 261, emailVerified: true },
+  { _id: "f6", name: "Ivan Petrov",   image: "https://i.pravatar.cc/150?img=61", skills: ["AWS", "Docker", "Go", "Redis"],      rating: 4.8, completedJobs: 140, emailVerified: false },
 ];
 
-// ─── Skill tag palette ─────────────────────────────────────────────────────────
-const SKILL_PALETTE = [
-  { text: "#ff9a50", bg: "#ff640018", border: "#ff640030" },
-  { text: "#50d4ff", bg: "#00aaff14", border: "#00aaff28" },
-  { text: "#a78bfa", bg: "#7850ff14", border: "#7850ff28" },
-  { text: "#34d399", bg: "#00c87814", border: "#00c87828" },
-  { text: "#fb7185", bg: "#f0325014", border: "#f0325028" },
-  { text: "#f59e0b", bg: "#d9770614", border: "#d9770628" },
-];
+export default function TopFreelancers() {
+  const router = useRouter();
+  const [freelancers, setFreelancers] = useState([]);
+  const [loading, setLoading]         = useState(true);
 
-function skillStyle(index) {
-  return SKILL_PALETTE[index % SKILL_PALETTE.length];
-}
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getAllFreelancers();
+        if (Array.isArray(data) && data.length > 0) {
+          setFreelancers(data.slice(0, 6));
+        } else {
+          setFreelancers(STATIC_FREELANCERS);
+        }
+      } catch {
+        setFreelancers(STATIC_FREELANCERS);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
-// ─── Star Rating ───────────────────────────────────────────────────────────────
-function StarRating({ rating }) {
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.5;
-  return (
-    <div className="flex items-center gap-[3px]">
-      {Array.from({ length: 5 }).map((_, i) => {
-        const filled = i < full;
-        const half = !filled && hasHalf && i === full;
-        return (
-          <svg key={i} width="11" height="11" viewBox="0 0 12 12" fill="none">
-            <defs>
-              <linearGradient id={`half-${i}`} x1="0" x2="1" y1="0" y2="0">
-                <stop offset="50%" stopColor="#ff8040" />
-                <stop offset="50%" stopColor="#ffffff20" />
-              </linearGradient>
-            </defs>
-            <polygon
-              points="6,1 7.5,4.5 11,4.8 8.5,7.2 9.2,11 6,9.2 2.8,11 3.5,7.2 1,4.8 4.5,4.5"
-              fill={filled ? "#ff8040" : half ? `url(#half-${i})` : "rgba(255,255,255,0.12)"}
-            />
-          </svg>
-        );
-      })}
-      <span
-        style={{
-          fontFamily: "'JetBrains Mono',monospace",
-          fontSize: 10, fontWeight: 700,
-          color: "#ff8040", letterSpacing: "-0.01em",
-          marginLeft: 3,
-        }}
-      >
-        {rating.toFixed(1)}
-      </span>
-    </div>
-  );
-}
-
-// ─── FreelancerCard ────────────────────────────────────────────────────────────
-
-
-// ─── TopFreelancers Section ────────────────────────────────────────────────────
-export default function TopFreelancers({ freelancers }) {
-  const displayFreelancers = freelancers ?? STATIC_FREELANCERS;
+  const displayFreelancers = loading ? STATIC_FREELANCERS : freelancers;
 
   return (
     <section className="relative w-full overflow-hidden py-24 bg-black">
@@ -205,6 +123,7 @@ export default function TopFreelancers({ freelancers }) {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
+              onClick={() => router.push("/freelancers")}
               className="inline-flex items-center gap-1.5 rounded-[8px] px-[14px] py-[7px] text-[13px] font-semibold cursor-pointer border-0"
               style={{
                 color: "rgba(255,77,0,0.88)",
@@ -217,14 +136,39 @@ export default function TopFreelancers({ freelancers }) {
           </motion.div>
         </div>
 
-        {/* Freelancer grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {displayFreelancers.map((freelancer, i) => (
-            <FreelancerCard key={freelancer.id} freelancer={freelancer} index={i} skillStyle={skillStyle} StarRating={StarRating} SKILL_PALETTE={SKILL_PALETTE}/>
-          ))}
-        </div>
+        {/* Freelancer grid — skeleton while loading */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  height: 200,
+                  borderRadius: 16,
+                  background:
+                    "linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%)",
+                  backgroundSize: "200% 100%",
+                  animation: "shimmer 1.4s infinite",
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {displayFreelancers.map((freelancer, i) => (
+              <FreelancerCard
+                key={freelancer._id ?? freelancer.id ?? i}
+                freelancer={freelancer}
+                index={i}
+              />
+            ))}
+          </div>
+        )}
 
       </div>
+
+      {/* Shimmer keyframe */}
+      <style>{`@keyframes shimmer { to { background-position: -200% 0; } }`}</style>
 
       {/* Bottom fade */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent" />

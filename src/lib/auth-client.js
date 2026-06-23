@@ -1,8 +1,8 @@
-import { env } from "better-auth"
-import { createAuthClient } from "better-auth/react"
-export const authClient = createAuthClient({
-    /** The base URL of the server (optional if you're using the same domain) */
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL,
-})
+import { createAuthClient } from "better-auth/react";
 
-export const { signIn, signUp, useSession } = createAuthClient()
+// Single instance pointing to the Next.js app itself (which handles /api/auth/*)
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+});
+
+export const { signIn, signUp, useSession } = authClient;

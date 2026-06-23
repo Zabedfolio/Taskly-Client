@@ -66,12 +66,21 @@ export default function Navbar() {
 
   // ─── Logout ───────────────────────────────────────────────────────────────
   async function handleLogout() {
-    const { error } = await authClient.signOut();
-    if (error) {
-      console.error("Logout failed:", error);
-      return;
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.refresh();           // invalidate Next.js server cache
+            router.push("/auth/login"); // redirect to login
+          },
+        },
+      });
+    } catch (err) {
+      // Network error — still redirect
+      console.warn("signOut request failed:", err);
+      router.refresh();
+      router.push("/auth/login");
     }
-    router.push("/auth/login");
   }
 
   return (

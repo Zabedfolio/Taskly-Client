@@ -1,9 +1,101 @@
+"use client";
+
 import { motion } from "framer-motion";
 
+// ─── Skill tag palette ─────────────────────────────────────────────────────────
+const SKILL_PALETTE = [
+  { text: "#ff9a50", bg: "#ff640018", border: "#ff640030" },
+  { text: "#50d4ff", bg: "#00aaff14", border: "#00aaff28" },
+  { text: "#a78bfa", bg: "#7850ff14", border: "#7850ff28" },
+  { text: "#34d399", bg: "#00c87814", border: "#00c87828" },
+  { text: "#fb7185", bg: "#f0325014", border: "#f0325028" },
+  { text: "#f59e0b", bg: "#d9770614", border: "#d9770628" },
+];
 
+function skillStyle(index) {
+  return SKILL_PALETTE[index % SKILL_PALETTE.length];
+}
 
+// ─── Star Rating ───────────────────────────────────────────────────────────────
+function StarRating({ rating }) {
+  const safeRating = Number(rating) || 0;
+  const full = Math.floor(safeRating);
+  const hasHalf = safeRating - full >= 0.5;
+  return (
+    <div className="flex items-center gap-[3px]">
+      {Array.from({ length: 5 }).map((_, i) => {
+        const filled = i < full;
+        const half = !filled && hasHalf && i === full;
+        return (
+          <svg key={i} width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <defs>
+              <linearGradient id={`half-${i}`} x1="0" x2="1" y1="0" y2="0">
+                <stop offset="50%" stopColor="#ff8040" />
+                <stop offset="50%" stopColor="#ffffff20" />
+              </linearGradient>
+            </defs>
+            <polygon
+              points="6,1 7.5,4.5 11,4.8 8.5,7.2 9.2,11 6,9.2 2.8,11 3.5,7.2 1,4.8 4.5,4.5"
+              fill={filled ? "#ff8040" : half ? `url(#half-${i})` : "rgba(255,255,255,0.12)"}
+            />
+          </svg>
+        );
+      })}
+      <span
+        style={{
+          fontFamily: "'JetBrains Mono',monospace",
+          fontSize: 10, fontWeight: 700,
+          color: "#ff8040", letterSpacing: "-0.01em",
+          marginLeft: 3,
+        }}
+      >
+        {safeRating.toFixed(1)}
+      </span>
+    </div>
+  );
+}
 
-export default function FreelancerCard({ freelancer, index, skillStyle, StarRating, SKILL_PALETTE }) {
+// ─── Verified checkmark badge ──────────────────────────────────────────────────
+function VerifiedBadge() {
+  return (
+    <span
+      title="Email Verified"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 3,
+        fontSize: 9,
+        fontWeight: 700,
+        fontFamily: "'JetBrains Mono',monospace",
+        letterSpacing: "0.08em",
+        color: "#22c55e",
+        background: "rgba(34,197,94,0.08)",
+        border: "1px solid rgba(34,197,94,0.25)",
+        padding: "2px 6px",
+        borderRadius: 5,
+      }}
+    >
+      {/* checkmark svg */}
+      <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+        <circle cx="5" cy="5" r="4.5" stroke="#22c55e" strokeWidth="1" />
+        <path d="M3 5l1.3 1.4L7 3.5" stroke="#22c55e" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      Verified
+    </span>
+  );
+}
+
+// ─── FreelancerCard ────────────────────────────────────────────────────────────
+export default function FreelancerCard({ freelancer, index }) {
+  // Support both DB shape (_id, image, completedJobs) and legacy static shape
+  const name       = freelancer.name       ?? "Freelancer";
+  const title      = freelancer.title      ?? freelancer.role ?? "";
+  const avatar     = freelancer.image      ?? freelancer.avatarUrl ?? "https://i.pravatar.cc/300?img=1";
+  const skills     = freelancer.skills     ?? [];
+  const rating     = freelancer.rating     ?? 0;
+  const jobsDone   = freelancer.completedJobs ?? freelancer.jobsDone ?? 0;
+  const isVerified = freelancer.emailVerified === true;
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 28 }}
@@ -28,30 +120,35 @@ export default function FreelancerCard({ freelancer, index, skillStyle, StarRati
 
       <div className="flex flex-col flex-1 p-[22px] gap-0">
 
-        {/* Avatar + name + title */}
-        <div className="flex items-center gap-[12px] mb-[18px]">
+        {/* Avatar + name + title + verified */}
+        <div className="flex items-start gap-[12px] mb-[18px]">
           <img
-            src={freelancer.avatarUrl}
-            alt={freelancer.name}
+            src={avatar}
+            alt={name}
             className="w-[52px] h-[52px] rounded-full object-cover shrink-0"
             style={{ border: "2px solid rgba(255,77,0,0.35)" }}
           />
-          <div className="min-w-0">
-            <div className="text-[14px] font-bold text-white/90 leading-tight truncate">
-              {freelancer.name}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-[6px] flex-wrap">
+              <div className="text-[14px] font-bold text-white/90 leading-tight truncate">
+                {name}
+              </div>
+              {isVerified && <VerifiedBadge />}
             </div>
-            <div
-              className="text-[11px] font-medium mt-[3px] truncate"
-              style={{ color: "rgba(255,255,255,0.38)" }}
-            >
-              {freelancer.title}
-            </div>
+            {title && (
+              <div
+                className="text-[11px] font-medium mt-[3px] truncate"
+                style={{ color: "rgba(255,255,255,0.38)" }}
+              >
+                {title}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Skills */}
         <div className="flex flex-wrap gap-[6px] mb-[16px]">
-          {freelancer.skills.map((skill, i) => {
+          {skills.slice(0, 4).map((skill, i) => {
             const s = skillStyle(i);
             return (
               <span
@@ -90,7 +187,7 @@ export default function FreelancerCard({ freelancer, index, skillStyle, StarRati
             >
               Avg. Rating
             </div>
-            <StarRating rating={freelancer.rating} />
+            <StarRating rating={rating} />
           </div>
 
           <div className="text-right">
@@ -112,7 +209,7 @@ export default function FreelancerCard({ freelancer, index, skillStyle, StarRati
                 color: "#ff8040", letterSpacing: "-0.02em",
               }}
             >
-              {freelancer.jobsDone.toLocaleString()}
+              {Number(jobsDone).toLocaleString()}
             </div>
           </div>
         </div>
