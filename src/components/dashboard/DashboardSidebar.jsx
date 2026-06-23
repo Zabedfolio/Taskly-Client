@@ -268,7 +268,7 @@ function CollapsedRail({ navItems, activeId, onToggle, onLogout, user }) {
 }
 
 // ─── Main DashboardLayout ─────────────────────────────────────────────────────
-export default function DashboardLayout({ children }) {
+export default function DashboardSidebar({ children }) {
     const { data: session, isPending } = useSession();
     const user = session?.user;
     const pathname = usePathname();

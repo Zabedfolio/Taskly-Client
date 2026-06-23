@@ -1,10 +1,10 @@
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import React from 'react';
 
 const FreelancerDashboardHomePage = () => {
     return (
         <div>
-            <DashboardLayout></DashboardLayout>
+            <DashboardSidebar></DashboardSidebar>
         </div>
     );
 };

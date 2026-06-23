@@ -1,10 +1,9 @@
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import React from 'react';
 
 const ClientDashboardHomePage = () => {
     return (
-        <div>
-            <DashboardLayout></DashboardLayout>
+        <div className='pt-25'>
+            This is client dashboard home page
         </div>
     );
 };
