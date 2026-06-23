@@ -54,7 +54,7 @@ function PlatformBadge() {
 // ─── main component ───────────────────────────────────────────────────────────
 export default function HeroBanner() {
   return (
-    <section className="relative flex min-h-screen w-full items-center overflow-hidden bg-black pt-20">
+    <section className="relative flex min-h-screen w-full items-center overflow-hidden bg-black pt-40">
 
       {/* ── Background: deep radial gradient ── */}
       <div

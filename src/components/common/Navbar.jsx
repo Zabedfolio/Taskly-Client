@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -16,8 +17,6 @@ const privateLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Profile", href: "/profile" },
 ];
-
-const isLoggedIn = false;
 
 function NavLink({ href, children }) {
   const pathname = usePathname();
@@ -50,6 +49,11 @@ function NavLink({ href, children }) {
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
+  const isLoggedIn = !!user;
+
+  console.log("Navbar user:", user);
 
   return (
     <motion.header
@@ -95,14 +99,21 @@ export default function Navbar() {
         </div>
 
         {isLoggedIn ? (
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="hidden shrink-0 items-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition-shadow duration-200 hover:shadow-[0_0_22px_rgba(255,255,255,0.25)] md:flex"
-          >
-            Logout
-          </motion.button>
+          <div className="hidden shrink-0 items-center gap-2.5 md:flex">
+            <img
+              src={user.image || "https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"}
+              alt={user.name || "User avatar"}
+              className="h-8 w-8 rounded-full object-cover ring-1 ring-white/15"
+            />
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition-shadow duration-200 hover:shadow-[0_0_22px_rgba(255,255,255,0.25)]"
+            >
+              Logout
+            </motion.button>
+          </div>
         ) : (
           <Link href="/auth/login" className="hidden shrink-0 md:block">
             <motion.button
@@ -170,13 +181,20 @@ export default function Navbar() {
                   ))}
 
                 {isLoggedIn ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="mx-2 mt-2 mb-1 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black"
-                  >
-                    Logout
-                  </button>
+                  <div className="mx-2 mt-2 mb-1 flex items-center gap-2.5">
+                    <img
+                      src={user.image || "https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"}
+                      alt={user.name || "User avatar"}
+                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-white/15"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex-1 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 ) : (
                   <Link
                     href="/auth/login"
