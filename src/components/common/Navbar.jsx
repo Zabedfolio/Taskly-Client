@@ -9,7 +9,7 @@ import { authClient, useSession } from "@/lib/auth-client";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Browse Tasks", href: "/tasks" },
+  { label: "Browse Tasks", href: "/browse" },
   { label: "Browse Freelancers", href: "/freelancers" },
 ];
 
