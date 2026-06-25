@@ -98,7 +98,7 @@ export default function BrowseTasksPage() {
         setLoading(true); setError(null);
         try {
             const data = await getAllTasks();
-            setTasks((Array.isArray(data) ? data : []).filter(t => t.status === 'open'));
+            setTasks(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(err.message || 'Failed to fetch tasks.');
             toast.error('Failed to load tasks from database.');
