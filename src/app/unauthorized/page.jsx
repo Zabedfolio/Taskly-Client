@@ -105,15 +105,15 @@ function GlitchText({ text, style }) {
 }
 
 // ─── Countdown ticker ─────────────────────────────────────────────────────────
-function CountdownTicker() {
+function CountdownTicker({ redirectTo = '/' }) {
     const [count, setCount] = useState(10);
     const router = useRouter();
 
     useEffect(() => {
-        if (count <= 0) { router.push('/'); return; }
+        if (count <= 0) { router.push(redirectTo); return; }
         const t = setTimeout(() => setCount(c => c - 1), 1000);
         return () => clearTimeout(t);
-    }, [count, router]);
+    }, [count, router, redirectTo]);
 
     const pct = (count / 10) * 100;
     const circumference = 2 * Math.PI * 20;
@@ -412,7 +412,13 @@ export default function UnauthorizedPage({ role }) {
 
                     {/* ── Countdown ── */}
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <CountdownTicker />
+                        {(() => {
+                            let redirectTo = '/';
+                            if (role === 'client') redirectTo = '/dashboard/client';
+                            else if (role === 'freelancer') redirectTo = '/dashboard/freelancer';
+                            else if (role === 'admin') redirectTo = '/dashboard/admin';
+                            return <CountdownTicker redirectTo={redirectTo} />;
+                        })()}
                     </div>
 
                 </div>

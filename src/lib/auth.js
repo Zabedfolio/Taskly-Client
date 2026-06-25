@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI);
@@ -22,6 +22,34 @@ export const auth = betterAuth({
         input: true,
         defaultValue: "client",
       },
+      isBlocked: {
+        type: "boolean",
+        required: false,
+        returned: true,
+        input: false,
+        defaultValue: false,
+      },
     },
   },
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          let userId = session.userId;
+          if (userId) {
+            const user = await db.collection("user").findOne({
+              $or: [
+                { _id: userId },
+                { _id: new ObjectId(userId) }
+              ]
+            });
+            if (user && user.isBlocked) {
+              throw new Error("Your account has been blocked.");
+            }
+          }
+          return { data: session };
+        }
+      }
+    }
+  }
 });

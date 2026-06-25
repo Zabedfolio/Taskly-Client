@@ -30,7 +30,7 @@ const NAV_MAP = {
     ],
     freelancer: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutCellsLarge, href: '/dashboard/freelancer' },
-        { id: 'browse', label: 'Browse Tasks', icon: Magnifier, href: '/dashboard/freelancer/browse' },
+        { id: 'browse', label: 'Browse Tasks', icon: Magnifier, href: '/browse' },
         { id: 'proposals', label: 'My Proposals', icon: FileText, href: '/dashboard/freelancer/proposals' },
         { id: 'active', label: 'Active Work', icon: Briefcase, href: '/dashboard/freelancer/active' },
         { id: 'earnings', label: 'Earnings', icon: CreditCard, href: '/dashboard/freelancer/earnings' },
@@ -263,6 +263,12 @@ export default function DashboardSidebar({ children }) {
 
     if (isPending || loggingOut) return <LoadingSkeleton />;
     if (!user) { router.replace('/auth/login'); return <LoadingSkeleton />; }
+
+    // If the user account has been blocked, log out and send them to login screen
+    if (user.isBlocked) {
+        handleLogout();
+        return <LoadingSkeleton />;
+    }
 
     // ── Role guard → new futuristic UnauthorizedPage ──────────────────────────
     if (!ALLOWED_ROLES.includes(user.role)) return <UnauthorizedPage role={user.role} />;

@@ -1,0 +1,168 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useSession } from '@/lib/auth-client';
+import { getAllUsers, blockUser } from '@/lib/api/admin/adminApi';
+import { Persons, ArrowLeft, ShieldCheck } from '@gravity-ui/icons';
+import toast, { Toaster } from 'react-hot-toast';
+import Link from 'next/link';
+
+export default function AdminUsersPage() {
+    const { data: session, isPending } = useSession();
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [actionLoadingId, setActionLoadingId] = useState(null);
+
+    useEffect(() => {
+        if (isPending) return;
+        if (!session?.session?.token) {
+            setLoading(false);
+            return;
+        }
+        async function load() {
+            try {
+                const data = await getAllUsers(session.session.token);
+                setUsers(data || []);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        load();
+    }, [session, isPending]);
+
+    const handleToggleBlock = async (userId, currentlyBlocked) => {
+        if (!session?.session?.token) return;
+        try {
+            setActionLoadingId(userId);
+            await blockUser(userId, !currentlyBlocked, session.session.token);
+            setUsers(prev => prev.map(u =>
+                u._id === userId ? { ...u, isBlocked: !currentlyBlocked } : u
+            ));
+            toast.success(currentlyBlocked ? 'User unblocked successfully' : 'User blocked successfully');
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    if (isPending || loading) {
+        return (
+            <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2.5px solid rgba(255,77,0,0.2)', borderTopColor: '#ff4d00', animation: 'spin 0.75s linear infinite' }} />
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', letterSpacing: '0.1em' }}>LOADING USERS</span>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
+            <Toaster position="top-center" toastOptions={{ style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 } }} />
+
+            <div style={{ marginBottom: 20 }}>
+                <Link href="/dashboard/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#ff4d00'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}>
+                    <ArrowLeft width={14} height={14} /> Back to Dashboard
+                </Link>
+            </div>
+
+            <div style={{ marginBottom: 32 }}>
+                <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
+                    Manage <span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Users</span>
+                </h1>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                    View all platform accounts. Block or unblock users to control access.
+                </p>
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, overflow: 'hidden' }}>
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 700 }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+                                <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Name</th>
+                                <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Email</th>
+                                <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Role</th>
+                                <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Status</th>
+                                <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)', textAlign: 'right' }}>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map((u, idx) => {
+                                const isBlocked = u.isBlocked;
+                                const isAdmin = u.role === 'admin';
+                                const roleColors = { client: '#ff4d00', freelancer: '#a855f7', admin: '#06b6d4' };
+                                const roleColor = roleColors[u.role] || '#fff';
+
+                                return (
+                                    <tr key={u._id} style={{
+                                        borderBottom: idx < users.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                                        transition: 'background 0.2s'
+                                    }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.015)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <td style={{ padding: '18px 24px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                                <div style={{
+                                                    width: 32, height: 32, borderRadius: 8, flexShrink: 0, overflow: 'hidden',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    background: u.image ? 'transparent' : 'linear-gradient(135deg, #ff4d00, #cc3d00)',
+                                                    fontSize: 11, fontWeight: 800, color: '#fff'
+                                                }}>
+                                                    {u.image ? <img src={u.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (u.name?.charAt(0)?.toUpperCase() || '?')}
+                                                </div>
+                                                <span style={{ fontSize: 13.5, fontWeight: 700 }}>{u.name || 'Unknown'}</span>
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '18px 24px', fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{u.email}</td>
+                                        <td style={{ padding: '18px 24px' }}>
+                                            <span style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 99,
+                                                fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'monospace',
+                                                color: roleColor, background: `${roleColor}11`, border: `1px solid ${roleColor}33`
+                                            }}>
+                                                <span style={{ width: 5, height: 5, borderRadius: '50%', background: roleColor }} />
+                                                {u.role}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '18px 24px' }}>
+                                            {isBlocked ? (
+                                                <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', fontFamily: 'monospace', letterSpacing: '0.08em' }}>BLOCKED</span>
+                                            ) : (
+                                                <span style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', fontFamily: 'monospace', letterSpacing: '0.08em' }}>ACTIVE</span>
+                                            )}
+                                        </td>
+                                        <td style={{ padding: '18px 24px', textAlign: 'right' }}>
+                                            {isAdmin ? (
+                                                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>Protected</span>
+                                            ) : (
+                                                <button
+                                                    disabled={actionLoadingId === u._id}
+                                                    onClick={() => handleToggleBlock(u._id, isBlocked)}
+                                                    style={{
+                                                        padding: '6px 14px', borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                                                        border: isBlocked ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)',
+                                                        background: isBlocked ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+                                                        color: isBlocked ? '#22c55e' : '#ef4444',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {isBlocked ? 'Unblock' : 'Block'}
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}
