@@ -74,10 +74,10 @@ export default function FreelancerDashboardHomePage() {
     const totalEarnings = acceptedProposals.reduce((sum, p) => sum + (p.proposedBudget || 0), 0);
 
     const stats = [
-        { label: 'Browse Jobs', value: 'Find Work', desc: 'Explore task board', icon: Magnifier, href: '/dashboard/freelancer/browse', color: '#ff4d00', bg: 'rgba(255,77,0,0.06)' },
-        { label: 'My Proposals', value: `${totalSubmitted} Bids`, desc: `${pendingCount} Pending review`, icon: FileText, href: '/dashboard/freelancer/proposals', color: '#eab308', bg: 'rgba(234,179,8,0.06)' },
-        { label: 'Active Projects', value: `${activeCount} Active`, desc: 'Work in progress', icon: Briefcase, href: '/dashboard/freelancer/active', color: '#06b6d4', bg: 'rgba(6,182,212,0.06)' },
-        { label: 'Total Earnings', value: `$${totalEarnings.toLocaleString()} USD`, desc: 'From accepted contracts', icon: CreditCard, href: '/dashboard/freelancer', color: '#10b981', bg: 'rgba(16,185,129,0.06)' },
+        { label: 'Total Proposals', value: `${totalSubmitted}`, desc: 'All submitted bids', icon: FileText, href: '/dashboard/freelancer/proposals', color: '#ff4d00', bg: 'rgba(255,77,0,0.06)' },
+        { label: 'Pending Proposals', value: `${pendingCount}`, desc: 'Awaiting client response', icon: Clock, href: '/dashboard/freelancer/proposals', color: '#eab308', bg: 'rgba(234,179,8,0.06)' },
+        { label: 'Accepted Proposals', value: `${activeCount}`, desc: 'Active or completed projects', icon: Briefcase, href: '/dashboard/freelancer/active', color: '#06b6d4', bg: 'rgba(6,182,212,0.06)' },
+        { label: 'Total Earnings (USD)', value: `$${totalEarnings.toLocaleString()}`, desc: 'From accepted contracts', icon: CreditCard, href: '/dashboard/freelancer/active', color: '#10b981', bg: 'rgba(16,185,129,0.06)' },
     ];
 
     // 1. Chart: Monthly Earnings / Bid Activity Velocity

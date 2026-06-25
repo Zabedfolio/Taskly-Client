@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { getAllTasks } from '@/lib/api/home/getAllTasks';
 import { submitProposal } from '@/lib/api/client/submitProposal';
+import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
 import toast, { Toaster } from 'react-hot-toast';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -83,6 +84,7 @@ export default function BrowseTasksPage() {
     const [activeTask, setActiveTask] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted]   = useState(false);
+    const [myProposals, setMyProposals] = useState([]);
     const formRef = useRef(null);
 
     // Filters
@@ -106,6 +108,19 @@ export default function BrowseTasksPage() {
     };
 
     useEffect(() => { loadTasks(); }, []);
+
+    useEffect(() => {
+        if (!session?.session?.token || user?.role !== 'freelancer') return;
+        async function fetchMyProposals() {
+            try {
+                const data = await getMyProposals(session.session.token);
+                setMyProposals(data || []);
+            } catch (err) {
+                console.error("Error loading freelancer proposals in browse page:", err);
+            }
+        }
+        fetchMyProposals();
+    }, [session, user]);
 
     // ── Filter / sort ─────────────────────────────────────────────────────────
     const filtered = tasks
@@ -149,6 +164,8 @@ export default function BrowseTasksPage() {
             setTasks(prev => prev.map(t =>
                 t._id === activeTask._id ? { ...t, proposals: (t.proposals || 0) + 1 } : t
             ));
+            // Add to myProposals optimistically so they can't submit again
+            setMyProposals(prev => [...prev, { taskId: activeTask._id }]);
         } catch (err) {
             toast.error(err.message || 'Submission failed. Try again.');
         } finally {
@@ -357,6 +374,10 @@ export default function BrowseTasksPage() {
                                     <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, margin: '0 0 16px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                                         {task.description}
                                     </p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', textTransform: 'uppercase' }}>Client:</span>
+                                        <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{task.clientName || 'Verified Client'}</span>
+                                    </div>
                                     <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: 'auto 0 14px 0' }} />
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
@@ -553,6 +574,48 @@ export default function BrowseTasksPage() {
                                     }}>
                                         Sign In
                                     </a>
+                                </div>
+
+                            ) : user.role !== 'freelancer' ? (
+                                /* ── Non-freelancer role locked out ── */
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
+                                    <div style={{
+                                        width: 56, height: 56, borderRadius: '50%',
+                                        background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.25)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}>
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ff4d00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M12 9v4M12 17h.01" stroke="#ff4d00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Freelancer Account Required</h3>
+                                        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)', margin: '0 0 18px', lineHeight: 1.55 }}>
+                                            Only registered freelancers can submit proposal applications for tasks.
+                                        </p>
+                                    </div>
+                                </div>
+
+                            ) : myProposals.some(p => p.taskId === activeTask._id) ? (
+                                /* ── Already applied state ── */
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
+                                    <div style={{
+                                        width: 56, height: 56, borderRadius: '50%',
+                                        background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}>
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M22 4L12 14.01l-3-3" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Already Applied</h3>
+                                        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)', margin: '0 0 18px', lineHeight: 1.55 }}>
+                                            You have already submitted a proposal for this task card.
+                                        </p>
+                                    </div>
                                 </div>
 
                             ) : (
