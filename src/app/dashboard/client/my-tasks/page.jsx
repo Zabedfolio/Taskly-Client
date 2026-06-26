@@ -9,6 +9,9 @@ import toast, { Toaster } from 'react-hot-toast';
 import { getTasksById } from '@/lib/api/client/getTasksById';
 import { deleteTask }    from '@/lib/api/client/deleteTask';
 import { updateTask }    from '@/lib/api/client/updateTask';
+import FreelancerRatingModal from '@/components/shared/FreelancerRatingModal';
+import { fetchMyFreelancerRatings } from '@/lib/api/client/rateFreelancer';
+import { getFreelancerRatingsMapByTaskId, mergeRatingsMaps, normalizeId } from '@/lib/freelancerRatings';
 
 const CATEGORIES = [
     'Web Development',
@@ -622,10 +625,36 @@ export default function MyTasksPage() {
     const [viewTarget, setViewTarget]     = useState(null);
     const [editTarget, setEditTarget]     = useState(null);
     const [isSaving, setIsSaving]         = useState(false);
+    const [ratingTask, setRatingTask]     = useState(null);
+    const [ratingsByTask, setRatingsByTask] = useState({});
     const router = useRouter();
 
-    // In browser devtools
-console.log(session)
+    useEffect(() => {
+        async function loadRatings() {
+            const localMap = getFreelancerRatingsMapByTaskId();
+            const email = session?.user?.email;
+            if (!email) {
+                setRatingsByTask(localMap);
+                return;
+            }
+
+            try {
+                const apiRatings = await fetchMyFreelancerRatings(email);
+                const apiMap = {};
+                apiRatings.forEach(r => {
+                    const tid = normalizeId(r.taskId);
+                    if (tid) {
+                        apiMap[tid] = { stars: r.stars, review: r.review };
+                    }
+                });
+                setRatingsByTask(mergeRatingsMaps(localMap, apiMap));
+            } catch {
+                setRatingsByTask(localMap);
+            }
+        }
+
+        loadRatings();
+    }, [session?.user?.email]);
 
     // ── Load this client's tasks once session is ready ────────────────────────
     const loadTasks = useCallback(async () => {
@@ -859,7 +888,34 @@ console.log(session)
                                                             {formatDate(task.deadline)}
                                                         </span>
                                                     </td>
-                                                    <td data-label="Status"><StatusBadge status={task.status} /></td>
+                                                    <td data-label="Status">
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                                                            <StatusBadge status={task.status} />
+                                                            {task.status?.toLowerCase() === 'completed' && task.freelancerEmail && (
+                                                                <>
+                                                                    {ratingsByTask[normalizeId(task._id)] ? (
+                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: '#ff8040' }}>
+                                                                            <span>⭐ {ratingsByTask[normalizeId(task._id)].stars} Rated</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={() => setRatingTask(task)}
+                                                                            style={{
+                                                                                padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(255,128,0,0.3)',
+                                                                                background: 'rgba(255,128,0,0.08)', color: '#ff8040',
+                                                                                fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                                                                                transition: 'all 0.15s'
+                                                                            }}
+                                                                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,128,0,0.15)'; e.currentTarget.style.borderColor = '#ff8040'; }}
+                                                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,128,0,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,128,0,0.3)'; }}
+                                                                        >
+                                                                            Rate Freelancer
+                                                                        </button>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </td>
                                                     <td data-label="Proposals">
                                                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, fontFamily: 'monospace', color: (task.proposals ?? 0) > 0 ? '#fff' : 'rgba(255,255,255,0.3)' }}>
                                                             {(task.proposals ?? 0) > 0 && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff4d00', display: 'inline-block' }} />}
@@ -889,6 +945,20 @@ console.log(session)
                     </p>
                 )}
             </div>
+
+            <FreelancerRatingModal
+                open={!!ratingTask}
+                onClose={() => setRatingTask(null)}
+                task={ratingTask}
+                token={session?.session?.token}
+                onSubmitted={({ taskId, stars, review }) => {
+                    const tid = normalizeId(taskId);
+                    setRatingsByTask(prev => ({
+                        ...prev,
+                        [tid]: { stars, review },
+                    }));
+                }}
+            />
         </>
     );
 }

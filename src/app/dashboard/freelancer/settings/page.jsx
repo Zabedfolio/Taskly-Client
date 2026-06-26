@@ -200,7 +200,16 @@ export default function FreelancerSettingsPage() {
     // Profile state
     const [profileName, setProfileName]   = useState('');
     const [profileEmail, setProfileEmail] = useState('');
+    const [profileImage, setProfileImage] = useState('');
+    const [profileSkills, setProfileSkills] = useState('');
+    const [profileBio, setProfileBio]     = useState('');
+    const [profileHourlyRate, setProfileHourlyRate] = useState('');
+
     const [nameFocused, setNameFocused]   = useState(false);
+    const [imageFocused, setImageFocused] = useState(false);
+    const [skillsFocused, setSkillsFocused] = useState(false);
+    const [bioFocused, setBioFocused]     = useState(false);
+    const [rateFocused, setRateFocused]   = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
 
     // Password state
@@ -226,6 +235,10 @@ export default function FreelancerSettingsPage() {
         if (user) {
             setProfileName(user.name || '');
             setProfileEmail(user.email || '');
+            setProfileImage(user.image || '');
+            setProfileSkills(user.skills || '');
+            setProfileBio(user.bio || '');
+            setProfileHourlyRate(user.hourlyRate || '');
         }
     }, [user]);
 
@@ -246,8 +259,15 @@ export default function FreelancerSettingsPage() {
         }
         setSavingProfile(true);
         try {
-            await authClient.updateUser({ name: profileName.trim() });
+            await authClient.updateUser({
+                name: profileName.trim(),
+                image: profileImage.trim() || undefined,
+                skills: profileSkills.trim() || undefined,
+                bio: profileBio.trim() || undefined,
+                hourlyRate: profileHourlyRate ? Number(profileHourlyRate) : undefined
+            });
             toast.success('Profile updated successfully!');
+            router.refresh();
         } catch (err) {
             toast.error(err.message || 'Failed to update profile.');
         } finally {
@@ -370,17 +390,62 @@ export default function FreelancerSettingsPage() {
                 <Section id="profile" icon={Person} title="Profile Details" subtitle="Manage details shown to potential clients">
                     <form onSubmit={handleSaveProfile} noValidate>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                            <Field label="Display Name" hint="Prefills pitches">
-                                <input
-                                    type="text"
-                                    value={profileName}
-                                    onChange={e => setProfileName(e.target.value)}
-                                    onFocus={() => setNameFocused(true)}
-                                    onBlur={() => setNameFocused(false)}
-                                    style={inputBase(nameFocused)}
-                                    placeholder="Your full name"
-                                />
-                            </Field>
+                            {/* Profile Image Row */}
+                            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <div style={{
+                                    width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
+                                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
+                                }}>
+                                    {profileImage ? (
+                                        <img src={profileImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = ''; }} />
+                                    ) : (
+                                        <Person width={24} height={24} style={{ color: 'rgba(255,255,255,0.25)' }} />
+                                    )}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 200 }}>
+                                    <Field label="Profile Photo Link" hint="URL of your avatar image">
+                                        <input
+                                            type="text"
+                                            value={profileImage}
+                                            onChange={e => setProfileImage(e.target.value)}
+                                            onFocus={() => setImageFocused(true)}
+                                            onBlur={() => setImageFocused(false)}
+                                            style={inputBase(imageFocused)}
+                                            placeholder="https://example.com/avatar.jpg"
+                                        />
+                                    </Field>
+                                </div>
+                            </div>
+
+                            {/* Name & Hourly Rate Grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                                <Field label="Display Name" hint="Your public name">
+                                    <input
+                                        type="text"
+                                        value={profileName}
+                                        onChange={e => setProfileName(e.target.value)}
+                                        onFocus={() => setNameFocused(true)}
+                                        onBlur={() => setNameFocused(false)}
+                                        style={inputBase(nameFocused)}
+                                        placeholder="Your full name"
+                                    />
+                                </Field>
+                                <Field label="Hourly Rate (USD)" hint="Price per hour">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={profileHourlyRate}
+                                        onChange={e => setProfileHourlyRate(e.target.value)}
+                                        onFocus={() => setRateFocused(true)}
+                                        onBlur={() => setRateFocused(false)}
+                                        style={inputBase(rateFocused)}
+                                        placeholder="e.g. 45"
+                                    />
+                                </Field>
+                            </div>
+
+                            {/* Registered Email */}
                             <Field label="Registered Email" hint="Account identification">
                                 <input
                                     type="email"
@@ -389,7 +454,33 @@ export default function FreelancerSettingsPage() {
                                     style={{ ...inputBase(false), opacity: 0.5, cursor: 'not-allowed' }}
                                 />
                             </Field>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+
+                            {/* Skills (tags) */}
+                            <Field label="Skills (tags)" hint="Comma-separated skills list">
+                                <input
+                                    type="text"
+                                    value={profileSkills}
+                                    onChange={e => setProfileSkills(e.target.value)}
+                                    onFocus={() => setSkillsFocused(true)}
+                                    onBlur={() => setSkillsFocused(false)}
+                                    style={inputBase(skillsFocused)}
+                                    placeholder="e.g. React, Node.js, Figma, TypeScript"
+                                />
+                            </Field>
+
+                            {/* Bio text */}
+                            <Field label="Short Bio" hint="Introduce yourself to clients">
+                                <textarea
+                                    value={profileBio}
+                                    onChange={e => setProfileBio(e.target.value)}
+                                    onFocus={() => setBioFocused(true)}
+                                    onBlur={() => setBioFocused(false)}
+                                    style={{ ...inputBase(bioFocused), resize: 'vertical', minHeight: 100, lineHeight: 1.5 }}
+                                    placeholder="Describe your expertise, experience, and what you build..."
+                                />
+                            </Field>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
                                 <button type="submit" disabled={savingProfile} style={{
                                     padding: '10px 24px', borderRadius: 10, border: 'none',
                                     background: savingProfile ? 'rgba(255,77,0,0.5)' : 'linear-gradient(135deg,#ff4d00,#cc3d00)',
@@ -401,7 +492,7 @@ export default function FreelancerSettingsPage() {
                                 }}>
                                     {savingProfile
                                         ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />Saving…</>
-                                        : <><Pencil width={13} height={13} />Update Name</>}
+                                        : <><Pencil width={13} height={13} />Save Changes</>}
                                 </button>
                             </div>
                         </div>

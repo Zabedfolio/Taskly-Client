@@ -23,7 +23,7 @@ export default function MyProposalsPage() {
         async function fetchProposals() {
             try {
                 setLoading(true);
-                const data = await getMyProposals(session.session.token);
+                const data = await getMyProposals(session.user.email);
                 setProposals(data);
                 setError('');
             } catch (err) {

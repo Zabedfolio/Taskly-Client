@@ -16,10 +16,8 @@ const NotificationContext = createContext({
     clearAll: () => {},
 });
 
-async function fetchProposals(token) {
-    const res = await fetch(`${BASE_URL}/api/proposals?freelancerEmail=mine`, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
+async function fetchProposals(email) {
+    const res = await fetch(`${BASE_URL}/api/proposals?freelancerEmail=${encodeURIComponent(email)}`);
     if (!res.ok) return null;
     return res.json();
 }
@@ -62,9 +60,9 @@ export function NotificationProvider({ children }) {
 
     // ── Poll for proposal status changes (freelancer only) ────────────────
     const poll = useCallback(async () => {
-        if (!token || !isFreelancer) return;
+        if (!user?.email || !isFreelancer) return;
         try {
-            const proposals = await fetchProposals(token);
+            const proposals = await fetchProposals(user.email);
             if (!Array.isArray(proposals)) return;
 
             proposals.forEach(p => {
@@ -111,11 +109,11 @@ export function NotificationProvider({ children }) {
 
     // ── Set up poller (only for freelancers) ─────────────────────────────
     useEffect(() => {
-        if (!token || !isFreelancer) return;
+        if (!user?.email || !isFreelancer) return;
 
         // Initialise snapshot on first load
         (async () => {
-            const proposals = await fetchProposals(token).catch(() => null);
+            const proposals = await fetchProposals(user.email).catch(() => null);
             if (Array.isArray(proposals)) {
                 proposals.forEach(p => {
                     prevStatusMapRef.current[p._id] = p.status?.toLowerCase();
@@ -125,7 +123,7 @@ export function NotificationProvider({ children }) {
 
         pollerRef.current = setInterval(poll, POLL_INTERVAL_MS);
         return () => clearInterval(pollerRef.current);
-    }, [token, isFreelancer, poll]);
+    }, [user?.email, isFreelancer, poll]);
 
     // ── Helpers ───────────────────────────────────────────────────────────
     const markRead = useCallback((id) => {

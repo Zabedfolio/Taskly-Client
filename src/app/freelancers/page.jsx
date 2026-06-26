@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getAllFreelancers } from '@/lib/api/home/getAllFreelancer';
 import VerifiedBadge from '@/components/shared/VerifiedBadge';
+import FreelancerDetailModal from '@/components/shared/FreelancerDetailModal';
 
 // ─── Skill tag palette ──────────────────────────────────────────────────────
 const SKILL_PALETTE = [
@@ -55,11 +56,16 @@ function StarRating({ rating }) {
 // Uses shared VerifiedBadge component from @/components/shared/VerifiedBadge
 
 // ─── FreelancerCard ─────────────────────────────────────────────────────────
-function FreelancerCard({ freelancer, index }) {
+function FreelancerCard({ freelancer, index, onClick }) {
     const name       = freelancer.name        ?? 'Freelancer';
     const title      = freelancer.title       ?? freelancer.role ?? '';
     const avatar     = freelancer.image       ?? freelancer.avatarUrl ?? 'https://i.pravatar.cc/300?img=1';
-    const skills     = freelancer.skills      ?? [];
+    let skills = freelancer.skills ?? [];
+    if (typeof skills === 'string') {
+        skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (!Array.isArray(skills)) {
+        skills = [];
+    }
     const rating     = freelancer.rating      ?? 0;
     const jobsDone   = freelancer.completedJobs ?? freelancer.jobsDone ?? 0;
     const isVerified = freelancer.isVerified === true || freelancer.emailVerified === true;
@@ -71,6 +77,7 @@ function FreelancerCard({ freelancer, index }) {
             transition={{ duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
             whileHover={{ y: -5, boxShadow: '0 20px 60px rgba(255,77,0,0.13), 0 0 0 1px rgba(255,77,0,0.20)' }}
             className="freelancer-card"
+            onClick={onClick}
         >
             {/* Top accent bar */}
             <motion.div
@@ -161,7 +168,10 @@ function SkeletonCard() {
 const ALL_SKILLS = ['React', 'Node.js', 'Figma', 'After Effects', 'SEO', 'AWS', 'Python', 'Vue', 'Flutter', 'PostgreSQL', 'Premiere', 'Go', 'Docker', 'TypeScript', 'MongoDB'];
 
 export default function FreelancersPage() {
-    const [freelancers, setFreelancers] = useState([]);
+    const [rawFreelancers, setRawFreelancers] = useState([]);
+    const [allRatings, setAllRatings] = useState([]);
+    const [allTasks, setAllTasks] = useState([]);
+    const [allProposals, setAllProposals] = useState([]);
     const [loading, setLoading]         = useState(true);
     const [error, setError]             = useState(null);
 
@@ -169,14 +179,28 @@ export default function FreelancersPage() {
     const [selectedSkill, setSelectedSkill]   = useState('All Skills');
     const [sortBy, setSortBy]                 = useState('rating');
     const [verifiedOnly, setVerifiedOnly]     = useState(false);
+    const [selectedFreelancerEmail, setSelectedFreelancerEmail] = useState(null);
 
     const load = async () => {
         setLoading(true);
         setError(null);
         try {
-            const data = await getAllFreelancers();
-            console.log('free data', data);
-            setFreelancers(Array.isArray(data) ? data : []);
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
+            const [freelancersData, ratingsRes, tasksRes, proposalsRes] = await Promise.all([
+                getAllFreelancers(),
+                fetch(`${baseUrl}/api/freelancer-ratings`),
+                fetch(`${baseUrl}/api/tasks`),
+                fetch(`${baseUrl}/api/proposals`)
+            ]);
+            
+            const ratingsData = ratingsRes.ok ? await ratingsRes.json() : [];
+            const tasksData = tasksRes.ok ? await tasksRes.json() : [];
+            const proposalsData = proposalsRes.ok ? await proposalsRes.json() : [];
+
+            setRawFreelancers(Array.isArray(freelancersData) ? freelancersData : []);
+            setAllRatings(Array.isArray(ratingsData) ? ratingsData : []);
+            setAllTasks(Array.isArray(tasksData) ? tasksData : []);
+            setAllProposals(Array.isArray(proposalsData) ? proposalsData : []);
         } catch (err) {
             setError(err.message || 'Failed to load freelancers.');
         } finally {
@@ -185,6 +209,41 @@ export default function FreelancersPage() {
     };
 
     useEffect(() => { load(); }, []);
+
+    // Compute stats client-side
+    const freelancers = rawFreelancers.map(f => {
+        const email = f.email?.toLowerCase().trim();
+        
+        // Average rating
+        const fRatings = allRatings.filter(r => r.freelancerEmail?.toLowerCase() === email);
+        const avg = fRatings.length > 0
+            ? fRatings.reduce((sum, r) => sum + r.stars, 0) / fRatings.length
+            : 0;
+
+        // Completed jobs
+        const fProposals = allProposals.filter(p => 
+            p.freelancerEmail?.toLowerCase() === email && 
+            p.status?.toLowerCase() === 'accepted'
+        );
+        const done = fProposals.filter(p => {
+            const t = allTasks.find(task => task._id === p.taskId);
+            return t && t.status?.toLowerCase() === 'completed';
+        }).length;
+
+        let skillsArr = f.skills ?? [];
+        if (typeof skillsArr === 'string') {
+            skillsArr = skillsArr.split(',').map(s => s.trim()).filter(Boolean);
+        } else if (!Array.isArray(skillsArr)) {
+            skillsArr = [];
+        }
+
+        return {
+            ...f,
+            skills: skillsArr,
+            rating: avg || f.rating || 0,
+            completedJobs: done || f.completedJobs || 0
+        };
+    });
 
     // Collect all unique skills from data for the filter
     const availableSkills = ['All Skills', ...Array.from(new Set([
@@ -243,7 +302,7 @@ export default function FreelancersPage() {
                 }
                 .fl-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
                     gap: 20px;
                 }
                 .verified-toggle {
@@ -260,8 +319,8 @@ export default function FreelancersPage() {
                     color: #22c55e;
                 }
                 @media(max-width: 640px) {
-                    .fl-filter-row { flex-direction: column !important; }
-                    .fl-filter-input, .verified-toggle { width: 100%; }
+                    .fl-filter-row { flex-direction: column !important; align-items: stretch !important; }
+                    .fl-filter-input, .verified-toggle, .fl-search-wrapper { width: 100% !important; }
                 }
             `}</style>
 
@@ -321,7 +380,7 @@ export default function FreelancersPage() {
                     className="fl-filter-row"
                 >
                     {/* Search */}
-                    <div style={{ flex: 2, minWidth: 220, position: 'relative' }}>
+                    <div className="fl-search-wrapper" style={{ flex: 2, minWidth: 220, position: 'relative' }}>
                         <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}>
                             <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
                                 <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" />
@@ -413,12 +472,22 @@ export default function FreelancersPage() {
                 ) : (
                     <div className="fl-grid">
                         {filtered.map((freelancer, i) => (
-                            <FreelancerCard key={freelancer._id ?? i} freelancer={freelancer} index={i} />
+                            <FreelancerCard 
+                                key={freelancer._id ?? i} 
+                                freelancer={freelancer} 
+                                index={i} 
+                                onClick={() => setSelectedFreelancerEmail(freelancer.email)}
+                            />
                         ))}
                     </div>
                 )}
 
             </div>
+            <FreelancerDetailModal
+                open={!!selectedFreelancerEmail}
+                onClose={() => setSelectedFreelancerEmail(null)}
+                freelancerEmail={selectedFreelancerEmail}
+            />
         </div>
     );
 }

@@ -419,7 +419,7 @@ export default function SignUpPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [role, setRole] = useState("client"); // "client" | "freelancer"
-    const [form, setForm] = useState({ name: "", email: "", imageUrl: "", password: "" });
+    const [form, setForm] = useState({ name: "", email: "", imageUrl: "", password: "", skills: "", bio: "" });
     const router = useRouter();
 
     function set(field) {
@@ -446,6 +446,8 @@ export default function SignUpPage() {
     const imageUrl = formData.get("imageUrl");
     const password = formData.get("password");
     const role     = formData.get("role"); // "client" | "freelancer"
+    const skillsRaw = formData.get("skills");
+    const bio       = formData.get("bio");
 
     if (!name?.trim()) {
         setError("Full name is required.");
@@ -463,6 +465,15 @@ export default function SignUpPage() {
         setLoading(false);
         return;
     }
+    if (role === "freelancer" && !skillsRaw?.trim()) {
+        setError("Skills are required for freelancer accounts.");
+        setLoading(false);
+        return;
+    }
+
+    const skills = role === "freelancer"
+        ? (skillsRaw || "").split(",").map(s => s.trim()).filter(Boolean)
+        : [];
 
     const { data, error } = await authClient.signUp.email({
         name,
@@ -470,6 +481,8 @@ export default function SignUpPage() {
         password,
         image: imageUrl || undefined,
         role,
+        skills: skills.length > 0 ? skills.join(", ") : undefined, // better-auth expects string additional field
+        bio: bio || undefined,
     });
 
     if (error) {
@@ -742,6 +755,24 @@ export default function SignUpPage() {
                                     placeholder="https://example.com/avatar.jpg"
                                     value={form.imageUrl} onChange={set("imageUrl")}
                                     hint="Optional — paste a link to your profile photo"
+                                />
+
+                                {/* Skills (only for freelancer) */}
+                                {role === "freelancer" && (
+                                    <InputField
+                                        label="Skills" name="skills" type="text"
+                                        placeholder="React, Next.js, Node.js, CSS" required
+                                        value={form.skills} onChange={set("skills")}
+                                        hint="Enter your skills as a comma-separated list"
+                                    />
+                                )}
+
+                                {/* Bio */}
+                                <InputField
+                                    label="Short Bio" name="bio" type="text"
+                                    placeholder="Tell us a bit about yourself..."
+                                    value={form.bio} onChange={set("bio")}
+                                    hint="Optional — brief introduction"
                                 />
 
                                 {/* Password */}

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown, User, Settings, LogOut, LayoutDashboard, DollarSign } from "lucide-react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { useTheme } from "@/contexts/ThemeContext";
 import NotificationBell from "@/components/common/NotificationBell";
@@ -123,12 +123,35 @@ function ThemeToggle() {
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const { theme } = useTheme();
   const user = session?.user;
   const isLoggedIn = !!user;
   const isDark = theme === "dark";
+
+  const profileDropdownRef = useRef(null);
+
+  // ─── Outside click handler ─────────────────────────────────────────
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // ─── Auto-logout blocked accounts ──────────────────────────────────
+  useEffect(() => {
+    if (user?.isBlocked) {
+      handleLogout();
+    }
+  }, [user]);
 
   const dashboardHref = getDashboardHref(user?.role);
 
@@ -192,10 +215,7 @@ export default function Navbar() {
           ))}
 
           {isLoggedIn && (
-            <>
-              <NavLink href={dashboardHref}>Dashboard</NavLink>
-              <NavLink href="/profile">Profile</NavLink>
-            </>
+            <NavLink href={dashboardHref}>Dashboard</NavLink>
           )}
         </div>
 
@@ -209,25 +229,140 @@ export default function Navbar() {
               {/* Notification bell (freelancers primarily, but shown for all logged-in) */}
               <NotificationBell />
 
-              <img
-                src={user.image || "https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"}
-                alt={user.name || "User avatar"}
-                className="h-8 w-8 rounded-full object-cover ring-1 ring-white/15"
-              />
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleLogout}
-                className="flex items-center rounded-xl px-4 py-2 text-sm font-semibold transition-shadow duration-200"
-                style={{
-                  background: isDark ? "#fff" : "#1a1a1a",
-                  color: isDark ? "#000" : "#fff",
-                  boxShadow: "0 0 18px rgba(0,0,0,0.15)",
-                }}
-              >
-                Logout
-              </motion.button>
+              {/* Profile Dropdown Menu */}
+              <div ref={profileDropdownRef} className="relative z-50">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileDropdownOpen((open) => !open)}
+                  className="flex items-center gap-1.5 rounded-full p-0.5 transition-all hover:bg-white/5 focus:outline-none"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="true"
+                >
+                  <img
+                    src={user.image || "https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"}
+                    alt={user.name || "User avatar"}
+                    className="h-8 w-8 rounded-full object-cover ring-2 ring-[#ff4d00]/30 hover:ring-[#ff4d00] transition-all"
+                  />
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${
+                      isDark ? "text-white/50" : "text-black/50"
+                    } ${isProfileDropdownOpen ? "rotate-180 text-[#ff4d00]" : ""}`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {isProfileDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                      style={{
+                        background: isDark
+                          ? "linear-gradient(180deg, rgba(38,12,2,0.96) 0%, rgba(13,4,0,0.98) 100%)"
+                          : "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,248,245,0.98) 100%)",
+                        borderColor: isDark ? "rgba(255,77,0,0.22)" : "rgba(255,77,0,0.15)",
+                        color: isDark ? "#fff" : "#1a1a1a",
+                      }}
+                    >
+                      {/* User Info Header */}
+                      <div className="flex items-center gap-3 pb-3">
+                        <img
+                          src={user.image || "https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"}
+                          alt={user.name || "User avatar"}
+                          className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate text-sm font-bold leading-tight" style={{ color: isDark ? "#fff" : "#1a1a1a" }}>
+                            {user.name || "User"}
+                          </h4>
+                          <p className="truncate text-[11px] leading-tight text-white/40" style={{ color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}>
+                            {user.email}
+                          </p>
+                          <span
+                            className="mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                            style={{
+                              color: user.role === "freelancer" ? "#22c55e" : user.role === "admin" ? "#a855f7" : "#ff4d00",
+                              background: user.role === "freelancer" ? "rgba(34,197,94,0.1)" : user.role === "admin" ? "rgba(168,85,247,0.1)" : "rgba(255,77,0,0.1)",
+                              border: `1px solid ${
+                                user.role === "freelancer"
+                                  ? "rgba(34,197,94,0.2)"
+                                  : user.role === "admin"
+                                  ? "rgba(168,85,247,0.2)"
+                                  : "rgba(255,77,0,0.2)"
+                              }`,
+                            }}
+                          >
+                            ● {user.role || "client"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="h-[1px] my-1" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }} />
+
+                      {/* Menu Links */}
+                      <div className="flex flex-col gap-0.5 py-1">
+                        <Link
+                          href={dashboardHref}
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all hover:bg-[#ff4d00]/10 hover:text-[#ff4d00]"
+                          style={{
+                            color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)",
+                          }}
+                        >
+                          <LayoutDashboard size={13} />
+                          Dashboard
+                        </Link>
+
+                        <Link
+                          href={`${dashboardHref}/settings`}
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all hover:bg-[#ff4d00]/10 hover:text-[#ff4d00]"
+                          style={{
+                            color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)",
+                          }}
+                        >
+                          <Settings size={13} />
+                          Settings
+                        </Link>
+
+                        {user.role === "freelancer" && (
+                          <Link
+                            href="/dashboard/freelancer/earnings"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all hover:bg-[#ff4d00]/10 hover:text-[#ff4d00]"
+                            style={{
+                              color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)",
+                            }}
+                          >
+                            <DollarSign size={13} />
+                            Earnings
+                          </Link>
+                        )}
+                      </div>
+
+                      {/* Divider */}
+                      <div className="h-[1px] my-1" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }} />
+
+                      {/* Logout Action */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileDropdownOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold transition-all text-[#ef4444] hover:bg-[#ef4444]/10"
+                      >
+                        <LogOut size={13} />
+                        Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </>
           ) : (
             <Link href="/auth/login" className="hidden shrink-0 md:block">
@@ -297,14 +432,26 @@ export default function Navbar() {
                     >
                       Dashboard
                     </Link>
+
                     <Link
-                      href="/profile"
+                      href={`${dashboardHref}/settings`}
                       onClick={() => setIsMenuOpen(false)}
                       className="rounded-xl px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5"
                       style={{ color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.65)" }}
                     >
-                      Profile
+                      Settings
                     </Link>
+
+                    {user.role === "freelancer" && (
+                      <Link
+                        href="/dashboard/freelancer/earnings"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="rounded-xl px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5"
+                        style={{ color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.65)" }}
+                      >
+                        Earnings
+                      </Link>
+                    )}
                   </>
                 )}
 

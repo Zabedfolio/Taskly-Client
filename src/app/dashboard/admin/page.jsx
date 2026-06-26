@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
-import { getAdminStats, getAllUsers, getAllTasks } from '@/lib/api/admin/adminApi';
+import { getAdminTransactions, getAllUsers, getAllTasks } from '@/lib/api/admin/adminApi';
 import { Persons, Briefcase, CircleDollar, ChartBar, ArrowRight } from '@gravity-ui/icons';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function AdminDashboardPage() {
     const { data: session, isPending } = useSession();
-    const [stats, setStats] = useState(null);
+    const [payments, setPayments] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -22,12 +23,12 @@ export default function AdminDashboardPage() {
         async function load() {
             try {
                 const token = session.session.token;
-                const [statsData, tasksData, usersData] = await Promise.all([
-                    getAdminStats(token),
+                const [paymentsData, tasksData, usersData] = await Promise.all([
+                    getAdminTransactions(token),
                     getAllTasks(),
                     getAllUsers(token)
                 ]);
-                setStats(statsData);
+                setPayments(paymentsData || []);
                 setTasks(tasksData || []);
                 setUsers(usersData || []);
             } catch (err) {
@@ -50,10 +51,10 @@ export default function AdminDashboardPage() {
     }
 
     const user = session?.user;
-    const totalUsers = stats?.totalUsers || 0;
-    const totalTasks = stats?.totalTasks || 0;
-    const activeTasks = stats?.activeTasks || 0;
-    const totalRevenue = stats?.totalRevenue || 0;
+    const totalUsers = users.length;
+    const totalTasks = tasks.length;
+    const activeTasks = tasks.filter(t => t.status === 'open').length;
+    const totalRevenue = payments.reduce((sum, p) => sum + (Number(p.payoutSize) || 0), 0);
 
     // Role distribution for donut chart
     const clientCount = users.filter(u => u.role === 'client').length;
@@ -91,17 +92,22 @@ export default function AdminDashboardPage() {
     return (
         <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
             {/* Header */}
-            <div style={{ marginBottom: 36 }}>
+            <motion.div
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                style={{ marginBottom: 36 }}
+            >
                 <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 6px' }}>
                     Admin <span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Console</span>
                 </h1>
                 <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
                     Platform-wide statistics, user management, and content moderation overview.
                 </p>
-            </div>
+            </motion.div>
 
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18, marginBottom: 36 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, marginBottom: 36 }}>
                 {[
                     { label: 'Total Users', value: totalUsers, icon: Persons, color: '#ff4d00', bg: 'rgba(255,77,0,0.06)' },
                     { label: 'Total Tasks', value: totalTasks, icon: Briefcase, color: '#a855f7', bg: 'rgba(168,85,247,0.06)' },
@@ -110,13 +116,17 @@ export default function AdminDashboardPage() {
                 ].map((stat, idx) => {
                     const Icon = stat.icon;
                     return (
-                        <div key={idx} style={{
-                            padding: '24px', borderRadius: 16, background: 'rgba(255,255,255,0.02)',
-                            border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 14,
-                            transition: 'all 0.2s'
-                        }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: idx * 0.08 }}
+                            whileHover={{ y: -3, borderColor: 'rgba(255,255,255,0.18)', boxShadow: '0 8px 30px rgba(255,77,0,0.05)' }}
+                            style={{
+                                padding: '24px', borderRadius: 16, background: 'rgba(255,255,255,0.02)',
+                                border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 14,
+                                cursor: 'pointer'
+                            }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>{stat.label}</span>
@@ -125,13 +135,13 @@ export default function AdminDashboardPage() {
                                 </div>
                             </div>
                             <div style={{ fontSize: 26, fontWeight: 800, color: '#fff' }}>{stat.value}</div>
-                        </div>
+                        </motion.div>
                     );
                 })}
             </div>
 
             {/* Charts Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 20, marginBottom: 36 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 36 }}>
                 {/* Bar Chart: Monthly Task Creations */}
                 <div style={{
                     padding: '24px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.015)',
@@ -150,12 +160,16 @@ export default function AdminDashboardPage() {
                                     <span style={{ fontSize: 10, fontWeight: 700, color: '#ff4d00', fontFamily: 'monospace' }}>
                                         {val > 0 ? val : ''}
                                     </span>
-                                    <div style={{
-                                        width: barWidth, height, borderRadius: '6px 6px 2px 2px',
-                                        background: 'linear-gradient(180deg, #ff4d00 0%, rgba(255,77,0,0.4) 100%)',
-                                        boxShadow: val > 0 ? '0 0 12px rgba(255,77,0,0.3)' : 'none',
-                                        transition: 'height 0.4s ease'
-                                    }} />
+                                    <motion.div
+                                        initial={{ height: 0 }}
+                                        animate={{ height }}
+                                        transition={{ duration: 0.6, delay: 0.2 + idx * 0.06, ease: 'easeOut' }}
+                                        style={{
+                                            width: barWidth, borderRadius: '6px 6px 2px 2px',
+                                            background: 'linear-gradient(180deg, #ff4d00 0%, rgba(255,77,0,0.4) 100%)',
+                                            boxShadow: val > 0 ? '0 0 12px rgba(255,77,0,0.3)' : 'none',
+                                        }}
+                                    />
                                     <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>{label}</span>
                                 </div>
                             );
@@ -181,14 +195,20 @@ export default function AdminDashboardPage() {
                             { label: 'Admins', count: adminCount, color: '#06b6d4' },
                             { label: 'Blocked', count: blockedCount, color: '#ef4444' },
                         ].map((r, idx) => (
-                            <div key={idx} style={{
-                                padding: '8px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.03)',
-                                border: `1px solid ${r.color}33`, display: 'flex', alignItems: 'center', gap: 8
-                            }}>
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                style={{
+                                    padding: '8px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.03)',
+                                    border: `1px solid ${r.color}33`, display: 'flex', alignItems: 'center', gap: 8
+                                }}
+                            >
                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: r.color, boxShadow: `0 0 6px ${r.color}` }} />
                                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{r.label}</span>
                                 <span style={{ fontSize: 13, fontWeight: 800, color: r.color }}>{r.count}</span>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
 
@@ -199,15 +219,26 @@ export default function AdminDashboardPage() {
                         ) : topCategories.map(([cat, count], idx) => {
                             const pct = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
                             return (
-                                <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <motion.div
+                                    key={cat}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                    style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+                                >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5 }}>
                                         <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{cat}</span>
                                         <span style={{ fontFamily: 'monospace', fontWeight: 700, color: catColors[idx % catColors.length] }}>{count} ({pct}%)</span>
                                     </div>
                                     <div style={{ height: 5, background: 'rgba(255,255,255,0.04)', borderRadius: 99 }}>
-                                        <div style={{ height: '100%', width: `${pct}%`, background: catColors[idx % catColors.length], borderRadius: 99, boxShadow: `0 0 6px ${catColors[idx % catColors.length]}` }} />
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${pct}%` }}
+                                            transition={{ duration: 0.5, delay: 0.2 + idx * 0.05 }}
+                                            style={{ height: '100%', background: catColors[idx % catColors.length], borderRadius: 99, boxShadow: `0 0 6px ${catColors[idx % catColors.length]}` }}
+                                        />
                                     </div>
-                                </div>
+                                </motion.div>
                             );
                         })}
                     </div>
@@ -221,22 +252,30 @@ export default function AdminDashboardPage() {
                     { label: 'Manage Tasks', desc: 'Review and moderate all posted tasks', href: '/dashboard/admin/tasks' },
                     { label: 'Transactions', desc: 'View Stripe payment history and status logs', href: '/dashboard/admin/transactions' },
                 ].map((act, idx) => (
-                    <Link key={idx} href={act.href} style={{ textDecoration: 'none' }}>
-                        <div style={{
-                            padding: '18px 20px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.05)',
-                            background: 'rgba(255,77,0,0.02)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s',
-                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                        }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.3)'; e.currentTarget.style.background = 'rgba(255,77,0,0.05)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.background = 'rgba(255,77,0,0.02)'; }}
-                        >
-                            <div>
-                                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 3 }}>{act.label}</div>
-                                <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)' }}>{act.desc}</div>
+                    <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: idx * 0.08 }}
+                        whileHover={{ scale: 1.01 }}
+                    >
+                        <Link href={act.href} style={{ textDecoration: 'none' }}>
+                            <div style={{
+                                padding: '18px 20px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.05)',
+                                background: 'rgba(255,77,0,0.02)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s',
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                            }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.3)'; e.currentTarget.style.background = 'rgba(255,77,0,0.05)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.background = 'rgba(255,77,0,0.02)'; }}
+                            >
+                                <div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 3 }}>{act.label}</div>
+                                    <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)' }}>{act.desc}</div>
+                                </div>
+                                <ArrowRight width={14} height={14} style={{ color: '#ff4d00' }} />
                             </div>
-                            <ArrowRight width={14} height={14} style={{ color: '#ff4d00' }} />
-                        </div>
-                    </Link>
+                        </Link>
+                    </motion.div>
                 ))}
             </div>
         </div>

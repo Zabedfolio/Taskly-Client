@@ -4,16 +4,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
  * Fetches all proposals submitted by the logged-in freelancer.
  * Queries the backend using ?freelancerEmail=mine and authenticates with the session token.
  */
-export const getMyProposals = async (token) => {
-    if (!token) throw new Error('Authentication session token is required.');
+export const getMyProposals = async (email) => {
+    if (!email) throw new Error('Email is required.');
 
     const res = await fetch(
-        `${BASE_URL}/api/proposals?freelancerEmail=mine`,
-        {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        }
+        `${BASE_URL}/api/proposals?freelancerEmail=${encodeURIComponent(email)}`
     );
 
     if (!res.ok) {

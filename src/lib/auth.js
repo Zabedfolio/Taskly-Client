@@ -29,6 +29,24 @@ export const auth = betterAuth({
         input: false,
         defaultValue: false,
       },
+      skills: {
+        type: "string",
+        required: false,
+        returned: true,
+        input: true,
+      },
+      bio: {
+        type: "string",
+        required: false,
+        returned: true,
+        input: true,
+      },
+      hourlyRate: {
+        type: "number",
+        required: false,
+        returned: true,
+        input: true,
+      },
     },
   },
   databaseHooks: {

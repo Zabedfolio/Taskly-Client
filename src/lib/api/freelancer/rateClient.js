@@ -73,17 +73,13 @@ export async function rateClient({
     return { ok: true, source: 'local' };
 }
 
-/** Fetch all ratings submitted by the logged-in freelancer. */
-export async function fetchMyRatings(token) {
-    if (!token) return [];
+export async function fetchMyRatings(email) {
+    if (!email) return [];
 
-    const res = await fetch(`${BASE_URL}/api/ratings?mine=true`, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-
+    const res = await fetch(`${BASE_URL}/api/ratings`);
     if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
+    const allRatings = await res.json();
+    return allRatings.filter(r => r.freelancerEmail?.toLowerCase() === email.toLowerCase());
 }
 
 /** Fetch average client rating stats from the backend. */
@@ -91,11 +87,16 @@ export async function fetchClientRatingStats(clientId) {
     if (!clientId) return null;
 
     try {
-        const res = await fetch(`${BASE_URL}/api/ratings/client/${encodeURIComponent(clientId)}`);
+        const res = await fetch(`${BASE_URL}/api/ratings`);
         if (!res.ok) return null;
-        const data = await res.json();
-        if (!data?.count) return null;
-        return { average: data.average, count: data.count };
+        const allRatings = await res.json();
+        const clientRatings = allRatings.filter(r => r.clientId === clientId);
+        if (clientRatings.length === 0) return null;
+        const sum = clientRatings.reduce((s, r) => s + r.stars, 0);
+        return {
+            average: sum / clientRatings.length,
+            count: clientRatings.length
+        };
     } catch {
         return null;
     }

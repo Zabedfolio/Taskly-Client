@@ -31,14 +31,14 @@ export default function ActiveProjectsPage() {
     useEffect(() => {
         async function loadRatings() {
             const localMap = getRatingsMapByProposalId();
-            const token = session?.session?.token;
-            if (!token) {
+            const email = session?.user?.email;
+            if (!email) {
                 setRatingsByProposal(localMap);
                 return;
             }
 
             try {
-                const apiRatings = await fetchMyRatings(token);
+                const apiRatings = await fetchMyRatings(email);
                 const apiMap = {};
                 apiRatings.forEach(r => {
                     const pid = normalizeId(r.proposalId);
@@ -53,7 +53,7 @@ export default function ActiveProjectsPage() {
         }
 
         loadRatings();
-    }, [session?.session?.token]);
+    }, [session?.user?.email]);
 
     const fetchGigs = async () => {
         if (!session?.session?.token) {

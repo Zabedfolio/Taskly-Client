@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
-import { getFreelancerStats } from '@/lib/api/freelancer/getFreelancerStats';
 import { Briefcase, Magnifier, FileText, CreditCard, Clock, ArrowRight, CircleDollar } from '@gravity-ui/icons';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function FreelancerDashboardHomePage() {
     const { data: session, isPending: sessionPending } = useSession();
@@ -24,13 +24,31 @@ export default function FreelancerDashboardHomePage() {
         async function fetchDashboardMetrics() {
             try {
                 setLoading(true);
-                const token = session.session.token;
-                const [data, stats] = await Promise.all([
-                    getMyProposals(token),
-                    getFreelancerStats(token).catch(() => ({ completedJobs: 0 })),
+                const email = session.user.email?.toLowerCase().trim();
+                
+                const [data, tasksRes] = await Promise.all([
+                    getMyProposals(email),
+                    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/tasks`)
                 ]);
-                setProposals(data || []);
-                setCompletedJobs(stats?.completedJobs ?? 0);
+                
+                const proposalsList = data || [];
+                setProposals(proposalsList);
+                
+                if (tasksRes.ok) {
+                    const tasksList = await tasksRes.json();
+                    const freelancerAccepted = proposalsList.filter(p => 
+                        p.freelancerEmail?.toLowerCase() === email &&
+                        p.status?.toLowerCase() === 'accepted'
+                    );
+                    
+                    const completedCount = freelancerAccepted.filter(prop => {
+                        const task = tasksList.find(t => t._id === prop.taskId);
+                        return task && task.status?.toLowerCase() === 'completed';
+                    }).length;
+                    
+                    setCompletedJobs(completedCount);
+                }
+                
                 setError('');
             } catch (err) {
                 console.error("Error loading freelancer dashboard metrics:", err);
@@ -152,14 +170,19 @@ export default function FreelancerDashboardHomePage() {
     return (
         <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
             {/* Header */}
-            <div style={{ marginBottom: 40 }}>
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                style={{ marginBottom: 40 }}
+            >
                 <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
                     Welcome back, <span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{user?.name || 'Freelancer'}</span>!
                 </h1>
                 <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
                     Here's a breakdown of your application velocities and active projects.
                 </p>
-            </div>
+            </motion.div>
 
             {error && (
                 <div style={{ padding: '16px 20px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', fontSize: 13.5, marginBottom: 24 }}>
@@ -168,18 +191,21 @@ export default function FreelancerDashboardHomePage() {
             )}
 
             {/* Quick Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18, marginBottom: 40 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, marginBottom: 40 }}>
                 {stats.map((item, idx) => {
                     const Icon = item.icon;
                     return (
                         <Link key={idx} href={item.href} style={{ textDecoration: 'none' }}>
-                            <div style={{
-                                padding: '24px', borderRadius: 16, background: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.07)', transition: 'all 0.2s',
-                                cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 16,
-                            }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                            <motion.div
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: idx * 0.08 }}
+                                whileHover={{ y: -3, borderColor: 'rgba(255,77,0,0.3)', boxShadow: '0 8px 30px rgba(255,77,0,0.04)' }}
+                                style={{
+                                    padding: '24px', borderRadius: 16, background: 'rgba(255,255,255,0.02)',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 16,
+                                }}
                             >
                                 <div style={{ width: 44, height: 44, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <Icon width={20} height={20} style={{ color: item.color }} />
@@ -189,14 +215,14 @@ export default function FreelancerDashboardHomePage() {
                                     <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{item.value}</div>
                                     <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.3)' }}>{item.desc}</div>
                                 </div>
-                            </div>
+                            </motion.div>
                         </Link>
                     );
                 })}
             </div>
 
             {/* Charts Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 20, marginBottom: 40 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 40 }}>
                 {/* Glowing SVG area chart of application values */}
                 <div style={{
                     padding: '24px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.015)',
@@ -226,19 +252,59 @@ export default function FreelancerDashboardHomePage() {
                             })}
 
                             {/* Glow Path */}
-                            {areaPath && <path d={areaPath} fill="url(#freelancerGradient)" />}
+                            {areaPath && (
+                                <motion.path
+                                    d={areaPath}
+                                    fill="url(#freelancerGradient)"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.2 }}
+                                />
+                            )}
 
                             {/* Area Line */}
-                            {linePath && <path d={linePath} fill="none" stroke="#ff4d00" strokeWidth="2.5" strokeLinecap="round" 
-                                               style={{ filter: 'drop-shadow(0px 0px 6px rgba(255,77,0,0.45))' }} />}
+                            {linePath && (
+                                <motion.path
+                                    d={linePath}
+                                    fill="none"
+                                    stroke="#ff4d00"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round" 
+                                    style={{ filter: 'drop-shadow(0px 0px 6px rgba(255,77,0,0.45))' }}
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 1.2, ease: 'easeInOut' }}
+                                />
+                            )}
 
                             {/* Value Markers */}
                             {points.map((p, idx) => (
                                 <g key={idx}>
-                                    <circle cx={p.x} cy={p.y} r="4" fill="#ff4d00" stroke="#080808" strokeWidth="1.5" />
-                                    <text x={p.x} y={p.y - 8} textAnchor="middle" fill="#fff" fontSize="9.5" fontWeight="700" fontFamily="monospace">
+                                    <motion.circle
+                                        cx={p.x}
+                                        cy={p.y}
+                                        r="4"
+                                        fill="#ff4d00"
+                                        stroke="#080808"
+                                        strokeWidth="1.5"
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ duration: 0.3, delay: 0.6 + idx * 0.08 }}
+                                    />
+                                    <motion.text
+                                        x={p.x}
+                                        y={p.y - 8}
+                                        textAnchor="middle"
+                                        fill="#fff"
+                                        fontSize="9.5"
+                                        fontWeight="700"
+                                        fontFamily="monospace"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ duration: 0.3, delay: 0.8 + idx * 0.08 }}
+                                    >
                                         {chartValues[idx] > 0 ? `$${chartValues[idx]}` : ''}
-                                    </text>
+                                    </motion.text>
                                 </g>
                             ))}
 
@@ -274,15 +340,26 @@ export default function FreelancerDashboardHomePage() {
                             {statusList.map((st, idx) => {
                                 const percentage = statusTotals > 0 ? Math.round((st.count / statusTotals) * 100) : 0;
                                 return (
-                                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                        style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
+                                    >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 12.5 }}>
                                             <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{st.label}</span>
                                             <span style={{ fontFamily: 'monospace', fontWeight: 700, color: st.color }}>{st.count} ({percentage}%)</span>
                                         </div>
                                         <div style={{ height: 6, width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 99, overflow: 'hidden' }}>
-                                            <div style={{ height: '100%', width: `${percentage}%`, background: st.color, borderRadius: 99, boxShadow: `0 0 8px ${st.color}` }} />
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${percentage}%` }}
+                                                transition={{ duration: 0.5, delay: 0.2 + idx * 0.05 }}
+                                                style={{ height: '100%', background: st.color, borderRadius: 99, boxShadow: `0 0 8px ${st.color}` }}
+                                            />
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 );
                             })}
                         </div>
@@ -291,7 +368,7 @@ export default function FreelancerDashboardHomePage() {
             </div>
 
             {/* Bottom Section: Recent Applications & Dashboard Actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
                 {/* Recent proposals submitted */}
                 <div style={{
                     padding: '24px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.015)',
@@ -318,10 +395,16 @@ export default function FreelancerDashboardHomePage() {
                                 else if (isRejected) badgeColor = '#ef4444';
 
                                 return (
-                                    <div key={proposal._id || idx} style={{
-                                        padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.015)',
-                                        border: '1px solid rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                    }}>
+                                    <motion.div
+                                        key={proposal._id || idx}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                        style={{
+                                            padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.015)',
+                                            border: '1px solid rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}
+                                    >
                                         <div>
                                             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                 {proposal.taskTitle || 'Untitled Task'}
@@ -344,7 +427,7 @@ export default function FreelancerDashboardHomePage() {
                                                 {proposal.status}
                                             </span>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 );
                             })}
                         </div>
@@ -364,22 +447,30 @@ export default function FreelancerDashboardHomePage() {
                             { label: 'Review Sent Proposals', desc: 'Check proposal statuses & response rates', href: '/dashboard/freelancer/proposals' },
                             { label: 'Track Active Contracts', desc: 'Manage works currently in progress', href: '/dashboard/freelancer/active' }
                         ].map((act, idx) => (
-                            <Link key={idx} href={act.href} style={{ textDecoration: 'none' }}>
-                                <div style={{
-                                    padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)',
-                                    background: 'rgba(255,77,0,0.02)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s',
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                }}
-                                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.3)'; e.currentTarget.style.background = 'rgba(255,77,0,0.05)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.background = 'rgba(255,77,0,0.02)'; }}
-                                >
-                                    <div>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{act.label}</div>
-                                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{act.desc}</div>
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: idx * 0.06 }}
+                                whileHover={{ scale: 1.01 }}
+                            >
+                                <Link href={act.href} style={{ textDecoration: 'none' }}>
+                                    <div style={{
+                                        padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)',
+                                        background: 'rgba(255,77,0,0.02)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s',
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                    }}
+                                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.3)'; e.currentTarget.style.background = 'rgba(255,77,0,0.05)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.background = 'rgba(255,77,0,0.02)'; }}
+                                    >
+                                        <div>
+                                            <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{act.label}</div>
+                                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{act.desc}</div>
+                                        </div>
+                                        <ArrowRight width={14} height={14} style={{ color: '#ff4d00' }} />
                                     </div>
-                                    <ArrowRight width={14} height={14} style={{ color: '#ff4d00' }} />
-                                </div>
-                            </Link>
+                                </Link>
+                            </motion.div>
                         ))}
                     </div>
                 </div>

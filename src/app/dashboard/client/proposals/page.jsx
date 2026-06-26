@@ -30,7 +30,7 @@ export default function ClientProposalsPage() {
         async function fetchProposals() {
             try {
                 setLoading(true);
-                const data = await getClientProposals(session.session.token);
+                const data = await getClientProposals(session.user.id);
                 setProposals(data);
                 setError('');
             } catch (err) {

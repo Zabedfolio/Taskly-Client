@@ -6,6 +6,7 @@ import { submitProposal } from '@/lib/api/client/submitProposal';
 import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
 import toast from 'react-hot-toast';
 import { useBookmarks } from '@/contexts/BookmarkContext';
+import FreelancerDetailModal from './FreelancerDetailModal';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmt   = (n) => `$${Number(n).toLocaleString()}`;
@@ -70,6 +71,7 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
     const { data: session } = useSession();
     const user = session?.user;
     const { toggleBookmark, isBookmarked } = useBookmarks();
+    const [selectedFreelancerEmail, setSelectedFreelancerEmail] = useState(null);
 
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -79,16 +81,16 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
 
     // ── Check if this freelancer already applied ──────────────────────────────
     useEffect(() => {
-        if (!session?.session?.token || user?.role !== 'freelancer' || !task?._id) return;
+        if (!user?.email || user?.role !== 'freelancer' || !task?._id) return;
         setCheckingProposals(true);
-        getMyProposals(session.session.token)
+        getMyProposals(user.email)
             .then(proposals => {
                 const applied = (proposals || []).some(p => p.taskId === task._id);
                 setAlreadyApplied(applied);
             })
             .catch(() => {})
             .finally(() => setCheckingProposals(false));
-    }, [session, user, task?._id]);
+    }, [user, task?._id]);
 
     // ── Close on Escape ───────────────────────────────────────────────────────
     useEffect(() => {
@@ -315,7 +317,85 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                             background: 'rgba(255,77,0,0.012)',
                         }}
                     >
-                        {submitted ? (
+                        {task.status?.toLowerCase() !== 'open' ? (
+                            /* ── Hired Freelancer Banner ── */
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 16, animation: 'fadeUp 0.4s ease' }}>
+                                <div style={{
+                                    fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',
+                                    color: '#ff4d00', background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.22)',
+                                    padding: '3px 9px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '0.1em'
+                                }}>
+                                    🔒 Position Filled
+                                </div>
+                                {task.freelancerEmail ? (
+                                    <div 
+                                        onClick={() => setSelectedFreelancerEmail(task.freelancerEmail)}
+                                        style={{
+                                            cursor: 'pointer',
+                                            width: '100%',
+                                            padding: '20px 16px',
+                                            borderRadius: 16,
+                                            background: 'rgba(255,255,255,0.02)',
+                                            border: '1px solid rgba(255,255,255,0.06)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 12,
+                                            transition: 'all 0.2s',
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.background = 'rgba(255,77,0,0.02)';
+                                            e.currentTarget.style.borderColor = 'rgba(255,77,0,0.2)';
+                                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,77,0,0.05)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                                            e.currentTarget.style.boxShadow = 'none';
+                                        }}
+                                    >
+                                        <div style={{ position: 'relative' }}>
+                                            {task.freelancerImage ? (
+                                                <img 
+                                                    src={task.freelancerImage} 
+                                                    alt={task.freelancerName || 'Hired Freelancer'}
+                                                    style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff4d00' }}
+                                                />
+                                            ) : (
+                                                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #ff4d00, #b33600)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #ff4d00', color: '#fff', fontSize: 24, fontWeight: 700 }}>
+                                                    {(task.freelancerName || 'F').charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                            <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#ff4d00', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: '2px solid #0f0f0f' }}>
+                                                ✓
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{task.freelancerName || 'Hired Freelancer'}</div>
+                                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>{task.freelancerEmail}</div>
+                                        </div>
+                                        <div style={{ 
+                                            marginTop: 4,
+                                            fontSize: 10.5, 
+                                            fontWeight: 600, 
+                                            color: '#ff7300', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: 4 
+                                        }}>
+                                            View Profile & Reviews 
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M5 12h14M12 5l7 7-7 7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+                                        This task is already in progress.
+                                    </p>
+                                )}
+                            </div>
+                        ) : submitted ? (
                             /* ── Success ── */
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 16, animation: 'fadeUp 0.4s ease' }}>
                                 <div style={{
@@ -526,6 +606,11 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                     </div>
                 </div>
             </div>
+            <FreelancerDetailModal 
+                open={!!selectedFreelancerEmail} 
+                onClose={() => setSelectedFreelancerEmail(null)} 
+                freelancerEmail={selectedFreelancerEmail} 
+            />
         </>
     );
 }

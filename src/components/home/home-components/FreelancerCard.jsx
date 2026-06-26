@@ -64,8 +64,15 @@ export default function FreelancerCard({ freelancer, index }) {
   // Support both DB shape (_id, image, completedJobs) and legacy static shape
   const name       = freelancer.name       ?? "Freelancer";
   const title      = freelancer.title      ?? freelancer.role ?? "";
-  const avatar     = freelancer.image      ?? freelancer.avatarUrl ?? "https://i.pravatar.cc/300?img=1";
-  const skills     = freelancer.skills     ?? [];
+  const avatar     = freelancer.image      ?? freelancer.avatarUrl ?? "https://i.pravatar.cc/350?img=1";
+  
+  let skills = freelancer.skills ?? [];
+  if (typeof skills === 'string') {
+    skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+  } else if (!Array.isArray(skills)) {
+    skills = [];
+  }
+
   const rating     = freelancer.rating     ?? 0;
   const jobsDone   = freelancer.completedJobs ?? freelancer.jobsDone ?? 0;
   const isVerified = freelancer.isVerified === true || freelancer.emailVerified === true;

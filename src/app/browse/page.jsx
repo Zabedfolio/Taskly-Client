@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { getAllTasks } from '@/lib/api/home/getAllTasks';
 import toast, { Toaster } from 'react-hot-toast';
 import TaskDetailModal from '@/components/shared/TaskDetailModal';
@@ -76,7 +77,7 @@ const inputStyle = (disabled) => ({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function BrowseTasksPage() {
-    const [tasks, setTasks]           = useState([]);
+    const [rawTasks, setRawTasks]       = useState([]);
     const [loading, setLoading]       = useState(true);
     const [error, setError]           = useState(null);
     const [activeTask, setActiveTask] = useState(null);
@@ -90,12 +91,54 @@ export default function BrowseTasksPage() {
     const [sort, setSort]             = useState('newest');
     const [minBudget, setMinBudget]   = useState('');
 
+    // Pagination (client-side limit = 9)
+    const [page, setPage]             = useState(1);
+    const limit = 9;
+
     // ── Load tasks ────────────────────────────────────────────────────────────
     const loadTasks = async () => {
-        setLoading(true); setError(null);
+        setLoading(true);
+        setError(null);
         try {
-            const data = await getAllTasks();
-            setTasks(Array.isArray(data) ? data : []);
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
+            const [tasksData, proposalsRes, freelancersRes] = await Promise.all([
+                getAllTasks(),
+                fetch(`${baseUrl}/api/proposals`),
+                fetch(`${baseUrl}/api/freelancers`)
+            ]);
+            
+            const tasksList = Array.isArray(tasksData) ? tasksData : (tasksData?.tasks || []);
+            const proposalsList = proposalsRes.ok ? await proposalsRes.json() : [];
+            const freelancersList = freelancersRes.ok ? await freelancersRes.json() : [];
+
+            // Client-side mapping
+            const enriched = tasksList.map(t => {
+                const count = proposalsList.filter(p => p.taskId === t._id).length;
+                const acceptedProp = proposalsList.find(p => p.taskId === t._id && p.status?.toLowerCase() === 'accepted');
+                
+                let freelancerEmail = null;
+                let freelancerName = null;
+                let freelancerImage = null;
+                
+                if (acceptedProp) {
+                    freelancerEmail = acceptedProp.freelancerEmail;
+                    const fUser = freelancersList.find(u => u.email?.toLowerCase() === acceptedProp.freelancerEmail?.toLowerCase());
+                    if (fUser) {
+                        freelancerName = fUser.name || 'Freelancer';
+                        freelancerImage = fUser.image || null;
+                    }
+                }
+                
+                return {
+                    ...t,
+                    proposals: count,
+                    freelancerEmail,
+                    freelancerName,
+                    freelancerImage
+                };
+            });
+
+            setRawTasks(enriched);
         } catch (err) {
             setError(err.message || 'Failed to fetch tasks.');
             toast.error('Failed to load tasks from database.');
@@ -104,34 +147,62 @@ export default function BrowseTasksPage() {
         }
     };
 
-    useEffect(() => { loadTasks(); }, []);
+    useEffect(() => {
+        loadTasks();
+    }, []);
 
-    // ── Filter / sort ─────────────────────────────────────────────────────────
-    const filtered = tasks
+    // Reset page to 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [search, category, minBudget, sort]);
+
+    // Client-side filtering & sorting
+    const processedTasks = [...rawTasks]
         .filter(t => {
-            const q = search.toLowerCase();
-            return (
-                (t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)) &&
-                (category === 'All Categories' || t.category === category) &&
-                (!minBudget || Number(t.budget) >= Number(minBudget))
-            );
+            // Category filter
+            if (category && category !== 'All Categories' && t.category !== category) {
+                return false;
+            }
+            // Min Budget filter
+            if (minBudget && Number(t.budget) < Number(minBudget)) {
+                return false;
+            }
+            // Search filter (title or description contains query)
+            if (search) {
+                const q = search.toLowerCase().trim();
+                const titleMatch = (t.title || '').toLowerCase().includes(q);
+                const descMatch = (t.description || '').toLowerCase().includes(q);
+                if (!titleMatch && !descMatch) {
+                    return false;
+                }
+            }
+            return true;
         })
         .sort((a, b) => {
-            if (sort === 'newest')      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-            if (sort === 'budget-high') return Number(b.budget) - Number(a.budget);
-            if (sort === 'budget-low')  return Number(a.budget) - Number(b.budget);
-            if (sort === 'deadline')    return new Date(a.deadline) - new Date(b.deadline);
-            return 0;
+            if (sort === 'budget-high') {
+                return Number(b.budget) - Number(a.budget);
+            }
+            if (sort === 'budget-low') {
+                return Number(a.budget) - Number(b.budget);
+            }
+            if (sort === 'deadline') {
+                return new Date(a.deadline) - new Date(b.deadline);
+            }
+            // Default newest
+            return new Date(b.createdAt) - new Date(a.createdAt);
         });
+
+    const totalPages = Math.ceil(processedTasks.length / limit) || 1;
+    const filtered = processedTasks.slice((page - 1) * limit, page * limit);
 
     const openTask = (task) => setActiveTask(task);
     const closeModal = () => {
-        // bump proposal count optimistically when modal closes after submission
         setActiveTask(null);
     };
+    
     // callback fired by modal after a successful proposal submit
     const handleProposalSubmit = (taskId) => {
-        setTasks(prev => prev.map(t =>
+        setRawTasks(prev => prev.map(t =>
             t._id === taskId ? { ...t, proposals: (t.proposals || 0) + 1 } : t
         ));
     };
@@ -304,12 +375,21 @@ export default function BrowseTasksPage() {
                         <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>No tasks found</h3>
                         <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Try adjusting your search or filters.</p>
                     </div>
-                ) : (
+                                ) : (
                     <div className="jobs-grid">
-                        {filtered.map(task => {
+                        {filtered.map((task, index) => {
                             const theme = getTheme(task.category);
                             return (
-                                <div key={task._id} className="task-card" onClick={() => openTask(task)} style={{ position: 'relative' }}>
+                                <motion.div
+                                    key={task._id}
+                                    className="task-card"
+                                    onClick={() => openTask(task)}
+                                    style={{ position: 'relative' }}
+                                    initial={{ opacity: 0, y: 28 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                                    whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(255,77,0,0.12), 0 0 0 1px rgba(255,77,0,0.22)' }}
+                                >
                                     {user && (
                                         <button
                                             type="button"
@@ -325,7 +405,7 @@ export default function BrowseTasksPage() {
                                             style={{
                                                 position: 'absolute', top: 12, right: 12, zIndex: 2,
                                                 width: 28, height: 28, borderRadius: 8,
-                                                border: isBookmarked(task._id) ? '1px solid rgba(255,160,0,0.45)' : '1px solid rgba(255,255,255,0.08)',
+                                                border: isBookmarked(task._id) ? '1px solid rgba(255,160,0,0.45)' : '1px solid rgba(255,255,255,0.03)',
                                                 background: isBookmarked(task._id) ? 'rgba(255,160,0,0.12)' : 'rgba(255,255,255,0.03)',
                                                 color: isBookmarked(task._id) ? '#ffb300' : 'rgba(255,255,255,0.4)',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -378,9 +458,66 @@ export default function BrowseTasksPage() {
                                             </span>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             );
                         })}
+                    </div>
+                )}
+
+                {/* ── Pagination controls ── */}
+                {!loading && !error && totalPages > 1 && (
+                    <div style={{
+                        display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 40,
+                        position: 'relative', zIndex: 1
+                    }}>
+                        <button
+                            disabled={page === 1}
+                            onClick={() => setPage(p => Math.max(p - 1, 1))}
+                            style={{
+                                padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)',
+                                background: page === 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
+                                color: page === 1 ? 'rgba(255,255,255,0.2)' : '#fff',
+                                fontSize: 13, fontWeight: 600, cursor: page === 1 ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            &larr; Prev
+                        </button>
+
+                        {Array.from({ length: totalPages }).map((_, idx) => {
+                            const pNum = idx + 1;
+                            const isCurrent = page === pNum;
+                            return (
+                                <button
+                                    key={pNum}
+                                    onClick={() => setPage(pNum)}
+                                    style={{
+                                        width: 36, height: 36, borderRadius: 10,
+                                        border: isCurrent ? '1px solid #ff4d00' : '1px solid rgba(255,255,255,0.08)',
+                                        background: isCurrent ? 'rgba(255,77,0,0.12)' : 'rgba(255,255,255,0.04)',
+                                        color: isCurrent ? '#ff4d00' : 'rgba(255,255,255,0.6)',
+                                        fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                    }}
+                                >
+                                    {pNum}
+                                </button>
+                            );
+                        })}
+
+                        <button
+                            disabled={page === totalPages}
+                            onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+                            style={{
+                                padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)',
+                                background: page === totalPages ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
+                                color: page === totalPages ? 'rgba(255,255,255,0.2)' : '#fff',
+                                fontSize: 13, fontWeight: 600, cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            Next &rarr;
+                        </button>
                     </div>
                 )}
             </div>
