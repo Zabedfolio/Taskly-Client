@@ -5,7 +5,9 @@ import { NextResponse } from "next/server";
 const PROTECTED_PREFIXES = ["/dashboard", "/profile"];
 
 // better-auth stores the session token in this cookie by default
-const SESSION_COOKIE = "better-auth.session_token";
+const SESSION_COOKIE = process.env.NODE_ENV === "production"
+  ? "__Secure-better-auth.session_token"
+  : "better-auth.session_token";
 
 export default async function proxy(request) {
   const { pathname } = request.nextUrl;

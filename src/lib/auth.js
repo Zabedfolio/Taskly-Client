@@ -1,24 +1,28 @@
 import { betterAuth } from "better-auth";
-import { MongoClient, ObjectId} from "mongodb";
-import { mongodbAdapter } from "@better-auth/mongo-adapter";
+import { MongoClient, ObjectId } from "mongodb";
+import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI);
-
 const db = client.db("taskly-db");
 
 export const auth = betterAuth({
-  database: mongodbAdapter(db, {
-    client,
-  }),
+  database: mongodbAdapter(db),
+
+  advanced: {
+    useSecureCookies: true,
+  },
+
   emailAndPassword: {
     enabled: true,
   },
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
   },
+
   user: {
     additionalFields: {
       role: {
@@ -62,25 +66,28 @@ export const auth = betterAuth({
       },
     },
   },
+
   databaseHooks: {
     session: {
       create: {
         before: async (session) => {
-          let userId = session.userId;
+          const userId = session.userId;
           if (userId) {
-            const user = await db.collection("user").findOne({
-              $or: [
-                { _id: userId },
-                { _id: new ObjectId(userId) }
-              ]
-            });
-            if (user && user.isBlocked) {
+            let user = null;
+            try {
+              user = await db.collection("user").findOne({
+                _id: new ObjectId(userId),
+              });
+            } catch {
+              user = await db.collection("user").findOne({ _id: userId });
+            }
+            if (user?.isBlocked) {
               throw new Error("Your account has been blocked.");
             }
           }
           return { data: session };
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 });
