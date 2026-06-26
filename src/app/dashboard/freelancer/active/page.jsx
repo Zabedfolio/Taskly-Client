@@ -56,13 +56,13 @@ export default function ActiveProjectsPage() {
     }, [session?.user?.email]);
 
     const fetchGigs = async () => {
-        if (!session?.session?.token) {
+        if (!session?.session?.token || !session?.user?.email) {
             setLoading(false);
             return;
         }
         try {
             setLoading(true);
-            const proposals = await getMyProposals(session.session.token);
+            const proposals = await getMyProposals(session.user.email);
             // Filter to proposals accepted by client
             const accepted = proposals.filter(p => p.status?.toLowerCase() === 'accepted');
 

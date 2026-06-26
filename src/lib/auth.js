@@ -68,6 +68,19 @@ export const auth = betterAuth({
   },
 
   databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          if (!user.role) {
+            user.role = "client";
+          }
+          if (user.onboardingComplete === undefined || user.onboardingComplete === null || user.onboardingComplete === false) {
+            user.onboardingComplete = true;
+          }
+          return { data: user };
+        },
+      },
+    },
     session: {
       create: {
         before: async (session) => {
@@ -83,6 +96,50 @@ export const auth = betterAuth({
             }
             if (user?.isBlocked) {
               throw new Error("Your account has been blocked.");
+            }
+
+            // Check if user logged in via google
+            let googleAccount = null;
+            try {
+              googleAccount = await db.collection("account").findOne({
+                $or: [
+                  { userId: userId, providerId: "google" },
+                  { userId: new ObjectId(userId), providerId: "google" }
+                ]
+              });
+            } catch {
+              try {
+                googleAccount = await db.collection("account").findOne({
+                  userId: userId,
+                  providerId: "google"
+                });
+              } catch (e) {
+                // ignore
+              }
+            }
+
+            if (googleAccount && user) {
+              const updateDoc = {};
+              if (!user.role) {
+                updateDoc.role = "client";
+              }
+              if (!user.onboardingComplete) {
+                updateDoc.onboardingComplete = true;
+              }
+
+              if (Object.keys(updateDoc).length > 0) {
+                try {
+                  await db.collection("user").updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $set: updateDoc }
+                  );
+                } catch {
+                  await db.collection("user").updateOne(
+                    { _id: userId },
+                    { $set: updateDoc }
+                  );
+                }
+              }
             }
           }
           return { data: session };
