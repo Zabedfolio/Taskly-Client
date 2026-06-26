@@ -9,7 +9,8 @@ import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import RatingModal from '@/components/shared/RatingModal';
 import StarRating from '@/components/shared/StarRating';
-import { getRatingsMapByProposalId } from '@/lib/clientRatings';
+import { getRatingsMapByProposalId, mergeRatingsMaps, normalizeId } from '@/lib/clientRatings';
+import { fetchMyRatings } from '@/lib/api/freelancer/rateClient';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -28,8 +29,31 @@ export default function ActiveProjectsPage() {
     const [ratingsByProposal, setRatingsByProposal] = useState({});
 
     useEffect(() => {
-        setRatingsByProposal(getRatingsMapByProposalId());
-    }, []);
+        async function loadRatings() {
+            const localMap = getRatingsMapByProposalId();
+            const token = session?.session?.token;
+            if (!token) {
+                setRatingsByProposal(localMap);
+                return;
+            }
+
+            try {
+                const apiRatings = await fetchMyRatings(token);
+                const apiMap = {};
+                apiRatings.forEach(r => {
+                    const pid = normalizeId(r.proposalId);
+                    if (pid) {
+                        apiMap[pid] = { stars: r.stars, review: r.review };
+                    }
+                });
+                setRatingsByProposal(mergeRatingsMaps(localMap, apiMap));
+            } catch {
+                setRatingsByProposal(localMap);
+            }
+        }
+
+        loadRatings();
+    }, [session?.session?.token]);
 
     const fetchGigs = async () => {
         if (!session?.session?.token) {
@@ -50,7 +74,7 @@ export default function ActiveProjectsPage() {
                         const task = await res.json();
                         return {
                             ...task,
-                            proposalId: proposal._id,
+                            proposalId: normalizeId(proposal._id),
                             proposedBudget: proposal.proposedBudget,
                             estimatedDays: proposal.estimatedDays,
                             coverNote: proposal.coverNote,
@@ -390,7 +414,7 @@ export default function ActiveProjectsPage() {
                                             </div>
                                         </div>
 
-                                        {ratingsByProposal[task.proposalId] ? (
+                                        {ratingsByProposal[normalizeId(task.proposalId)] ? (
                                             <div style={{
                                                 padding: '12px 14px', borderRadius: 10,
                                                 background: 'rgba(255,128,64,0.06)', border: '1px solid rgba(255,128,64,0.18)',
@@ -398,11 +422,11 @@ export default function ActiveProjectsPage() {
                                                 <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', textTransform: 'uppercase' }}>
                                                     Your Client Rating
                                                 </span>
-                                                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <StarRating value={ratingsByProposal[task.proposalId].stars} readOnly size="sm" />
-                                                    {ratingsByProposal[task.proposalId].review && (
+                                                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                                    <StarRating value={ratingsByProposal[normalizeId(task.proposalId)].stars} readOnly size="sm" />
+                                                    {ratingsByProposal[normalizeId(task.proposalId)].review && (
                                                         <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
-                                                            &ldquo;{ratingsByProposal[task.proposalId].review}&rdquo;
+                                                            &ldquo;{ratingsByProposal[normalizeId(task.proposalId)].review}&rdquo;
                                                         </span>
                                                     )}
                                                 </div>
@@ -551,9 +575,10 @@ export default function ActiveProjectsPage() {
                 proposalId={ratingTask?.proposalId}
                 token={session?.session?.token}
                 onSubmitted={({ proposalId, stars, review }) => {
+                    const pid = normalizeId(proposalId);
                     setRatingsByProposal(prev => ({
                         ...prev,
-                        [proposalId]: { stars, review },
+                        [pid]: { stars, review },
                     }));
                 }}
             />

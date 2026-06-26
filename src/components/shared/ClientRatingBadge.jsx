@@ -2,17 +2,47 @@
 
 import { useEffect, useState } from 'react';
 import StarRating from './StarRating';
-import { getClientAverageRating, getClientKey } from '@/lib/clientRatings';
+import {
+    getClientAverageRating,
+    getClientKey,
+    RATINGS_UPDATED_EVENT,
+} from '@/lib/clientRatings';
+import { fetchClientRatingStats } from '@/lib/api/freelancer/rateClient';
 
 /**
- * Shows a client's average rating from stored freelancer reviews.
+ * Shows a client's average rating from the backend (with localStorage fallback).
  */
 export default function ClientRatingBadge({ clientId, clientEmail, clientName, size = 'sm' }) {
     const [stats, setStats] = useState(null);
 
     useEffect(() => {
+        let cancelled = false;
         const key = getClientKey({ clientId, clientEmail, clientName });
-        setStats(getClientAverageRating(key));
+
+        async function load() {
+            const apiStats = clientId ? await fetchClientRatingStats(clientId) : null;
+            if (cancelled) return;
+
+            if (apiStats) {
+                setStats(apiStats);
+                return;
+            }
+
+            const localStats = getClientAverageRating(key);
+            setStats(localStats);
+        }
+
+        load();
+
+        function handleUpdate() {
+            load();
+        }
+
+        window.addEventListener(RATINGS_UPDATED_EVENT, handleUpdate);
+        return () => {
+            cancelled = true;
+            window.removeEventListener(RATINGS_UPDATED_EVENT, handleUpdate);
+        };
     }, [clientId, clientEmail, clientName]);
 
     if (!stats) return null;

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import StarRating from './StarRating';
 import { rateClient } from '@/lib/api/freelancer/rateClient';
 import toast from 'react-hot-toast';
+import { normalizeId } from '@/lib/clientRatings';
 
 /**
  * Modal for a freelancer to rate a client after task completion.
@@ -22,6 +23,14 @@ export default function RatingModal({ open, onClose, task, proposalId, token, on
     const [review, setReview] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
+    useEffect(() => {
+        if (open) {
+            setStars(0);
+            setReview('');
+            setSubmitting(false);
+        }
+    }, [open, proposalId]);
+
     if (!open || !task) return null;
 
     const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
@@ -36,8 +45,9 @@ export default function RatingModal({ open, onClose, task, proposalId, token, on
         setSubmitting(true);
         const tId = toast.loading('Submitting your review…');
         try {
+            const pid = normalizeId(proposalId || task.proposalId);
             await rateClient({
-                proposalId,
+                proposalId: pid,
                 taskId: task._id,
                 clientId: task.clientId || task.clientEmail,
                 clientName: task.clientName,
@@ -47,7 +57,7 @@ export default function RatingModal({ open, onClose, task, proposalId, token, on
             });
 
             toast.success('⭐ Review submitted successfully!', { id: tId });
-            onSubmitted?.({ proposalId, stars, review: review.trim() });
+            onSubmitted?.({ proposalId: pid, stars, review: review.trim() });
             onClose();
         } catch (err) {
             toast.error(err.message || 'Failed to submit review.', { id: tId });
