@@ -47,11 +47,17 @@ export async function rateClient({
             return { ok: true, source: 'api', rating: data };
         }
 
-        if (res.status === 409) {
-            throw new Error(data.error || 'You have already rated this client.');
+        // Server returned a structured error (proposal not found, not completed, etc.)
+        if (data.error) {
+            throw new Error(data.error);
         }
 
-        throw new Error(data.error || `Failed to submit rating (${res.status})`);
+        // Route not deployed / server not restarted — fall back to localStorage below
+        if (res.status === 404) {
+            console.warn('[rateClient] POST /api/ratings not found — saving locally. Restart taskly-server.');
+        } else {
+            throw new Error(`Failed to submit rating (${res.status})`);
+        }
     } catch (err) {
         if (err.message && !err.message.includes('fetch')) {
             throw err;

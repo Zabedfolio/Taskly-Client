@@ -46,7 +46,7 @@ export default function RatingModal({ open, onClose, task, proposalId, token, on
         const tId = toast.loading('Submitting your review…');
         try {
             const pid = normalizeId(proposalId || task.proposalId);
-            await rateClient({
+            const result = await rateClient({
                 proposalId: pid,
                 taskId: task._id,
                 clientId: task.clientId || task.clientEmail,
@@ -56,7 +56,12 @@ export default function RatingModal({ open, onClose, task, proposalId, token, on
                 token,
             });
 
-            toast.success('⭐ Review submitted successfully!', { id: tId });
+            toast.success(
+                result.source === 'local'
+                    ? '⭐ Review saved (server pending — restart taskly-server for sync)'
+                    : '⭐ Review submitted successfully!',
+                { id: tId }
+            );
             onSubmitted?.({ proposalId: pid, stars, review: review.trim() });
             onClose();
         } catch (err) {
