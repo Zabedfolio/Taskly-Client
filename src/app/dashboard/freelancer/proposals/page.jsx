@@ -69,7 +69,7 @@ export default function MyProposalsPage() {
     const totalBids = proposals.length;
     const pendingBids = proposals.filter(p => p.status === 'pending').length;
     const acceptedBids = proposals.filter(p => p.status === 'accepted' || p.status === 'Accepted').length;
-    const avgBid = totalBids > 0 ? (proposals.reduce((sum, p) => sum + (p.proposedBudget || 0), 0) / totalBids).toFixed(2) : '0.00';
+    const avgBid = totalBids > 0 ? (proposals.reduce((sum, p) => sum + (Number(p.proposedBudget) || 0), 0) / totalBids).toFixed(2) : '0.00';
 
     return (
         <div className="dash-page-container">

@@ -111,7 +111,7 @@ export default function ClientProposalsPage() {
     const totalReceived = proposals.length;
     const pendingCount = proposals.filter(p => p.status === 'pending').length;
     const acceptedCount = proposals.filter(p => p.status === 'accepted' || p.status === 'Accepted').length;
-    const avgBid = totalReceived > 0 ? (proposals.reduce((sum, p) => sum + (p.proposedBudget || 0), 0) / totalReceived).toFixed(2) : '0.00';
+    const avgBid = totalReceived > 0 ? (proposals.reduce((sum, p) => sum + (Number(p.proposedBudget) || 0), 0) / totalReceived).toFixed(2) : '0.00';
 
     return (
         <div className="dash-page-container">

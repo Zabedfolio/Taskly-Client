@@ -132,7 +132,7 @@ export default function FreelancerDashboardHomePage() {
     const pendingCount       = proposals.filter(p => p.status?.toLowerCase() === 'pending').length;
     const acceptedProposals  = proposals.filter(p => p.status?.toLowerCase() === 'accepted');
     const rejectedCount      = proposals.filter(p => p.status?.toLowerCase() === 'rejected').length;
-    const totalEarnings      = acceptedProposals.reduce((sum, p) => sum + (p.proposedBudget || 0), 0);
+    const totalEarnings      = acceptedProposals.reduce((sum, p) => sum + (Number(p.proposedBudget) || 0), 0);
     const winRate            = totalSubmitted > 0 ? Math.round((acceptedProposals.length / totalSubmitted) * 100) : 0;
 
     // ── Area chart: monthly bid volume ─────────────────────────────────────────
@@ -150,7 +150,7 @@ export default function FreelancerDashboardHomePage() {
         const lbl = monthNames[new Date(p.submittedAt).getMonth()];
         if (monthlyBids[lbl] !== undefined) {
             monthlyBids[lbl]++;
-            monthlyEarnings[lbl] += (p.proposedBudget || 0);
+            monthlyEarnings[lbl] += (Number(p.proposedBudget) || 0);
         }
     });
     const chartLabels  = Object.keys(monthlyBids);

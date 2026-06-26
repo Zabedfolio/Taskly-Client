@@ -697,7 +697,7 @@ export default function MyTasksPage() {
     };
 
     // ── Stats (always from full list) ─────────────────────────────────────────
-    const totalBudget    = allTasks.reduce((s, t) => s + (t.budget    ?? 0), 0);
+    const totalBudget    = allTasks.reduce((s, t) => s + (Number(t.budget) || 0), 0);
     const totalProposals = allTasks.reduce((s, t) => s + (t.proposals ?? 0), 0);
 
     // ── Navigation ────────────────────────────────────────────────────────────
