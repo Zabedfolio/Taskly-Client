@@ -9,9 +9,7 @@ import {
 } from '@/lib/clientRatings';
 import { fetchClientRatingStats } from '@/lib/api/freelancer/rateClient';
 
-/**
- * Shows a client's average rating from the backend (with localStorage fallback).
- */
+
 export default function ClientRatingBadge({ clientId, clientEmail, clientName, size = 'sm' }) {
     const [stats, setStats] = useState(null);
 

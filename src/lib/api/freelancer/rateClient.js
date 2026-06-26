@@ -2,10 +2,7 @@ import { saveRatingLocally } from '@/lib/clientRatings';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-/**
- * Submit a client rating for a completed proposal.
- * Falls back to localStorage when the backend endpoint is unavailable.
- */
+
 export async function rateClient({
     proposalId,
     taskId,

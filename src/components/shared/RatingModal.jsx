@@ -58,8 +58,8 @@ export default function RatingModal({ open, onClose, task, proposalId, token, on
 
             toast.success(
                 result.source === 'local'
-                    ? '⭐ Review saved (server pending — restart taskly-server for sync)'
-                    : '⭐ Review submitted successfully!',
+                    ? 'Review saved (server pending — restart taskly-server for sync)'
+                    : 'Review submitted successfully!',
                 { id: tId }
             );
             onSubmitted?.({ proposalId: pid, stars, review: review.trim() });
