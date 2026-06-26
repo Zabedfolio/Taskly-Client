@@ -75,7 +75,7 @@ export const auth = betterAuth({
               ]
             });
             if (user && user.isBlocked) {
-              throw new Error("Your account has been blocked.")
+              throw new Error("Your account has been blocked.");
             }
           }
           return { data: session };
