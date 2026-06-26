@@ -35,7 +35,46 @@ export default function RootLayout({ children }) {
               <ConditionalShell>
                 <div>{children}</div>
               </ConditionalShell>
-              <Toaster />
+              <Toaster
+                position="bottom-right"
+                toastOptions={{
+                  style: {
+                    background: '#0f0f11',
+                    color: '#fff',
+                    borderRadius: '12px',
+                    fontSize: '13.5px',
+                    padding: '12px 18px',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                  },
+                  icon: null,
+                  success: {
+                    style: {
+                      background: '#0f0f11',
+                      border: '1px solid rgba(34, 197, 94, 0.4)',
+                      color: '#fff',
+                    },
+                    icon: null,
+                  },
+                  error: {
+                    style: {
+                      background: '#0f0f11',
+                      border: '1px solid rgba(255, 77, 0, 0.4)',
+                      color: '#fff',
+                    },
+                    icon: null,
+                  },
+                  blank: {
+                    style: {
+                      background: '#0f0f11',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      color: '#fff',
+                    },
+                    icon: null,
+                  },
+                }}
+              />
             </BookmarkProvider>
           </NotificationProvider>
         </ThemeProvider>

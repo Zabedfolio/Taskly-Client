@@ -15,13 +15,14 @@ import Persons from '@gravity-ui/icons/Persons';
 import {
     Bookmark, CreditCard, Factory, FileText,
     Magnifier, ArrowRightFromSquare,
-    ChartBar, Plus, Xmark,
+    ChartBar, Plus, Xmark, House,
 } from '@gravity-ui/icons';
 import UnauthorizedPage from '@/app/unauthorized/page';
 
 // ─── Nav map per role ─────────────────────────────────────────────────────────
 const NAV_MAP = {
     client: [
+        { id: 'home', label: 'Go to Home', icon: House, href: '/' },
         { id: 'dashboard', label: 'Dashboard', icon: LayoutCellsLarge, href: '/dashboard/client' },
         { id: 'post-task', label: 'Post a Task', icon: Plus, href: '/dashboard/client/post-task' },
         { id: 'my-tasks', label: 'My Tasks', icon: Briefcase, href: '/dashboard/client/my-tasks' },
@@ -29,6 +30,7 @@ const NAV_MAP = {
         { id: 'settings', label: 'Settings', icon: Gear, href: '/dashboard/client/settings' },
     ],
     freelancer: [
+        { id: 'home', label: 'Go to Home', icon: House, href: '/' },
         { id: 'dashboard', label: 'Dashboard', icon: LayoutCellsLarge, href: '/dashboard/freelancer' },
         { id: 'browse', label: 'Browse Tasks', icon: Magnifier, href: '/browse' },
         { id: 'proposals', label: 'My Proposals', icon: FileText, href: '/dashboard/freelancer/proposals' },
@@ -38,6 +40,7 @@ const NAV_MAP = {
         { id: 'settings', label: 'Settings', icon: Gear, href: '/dashboard/freelancer/settings' },
     ],
     admin: [
+        { id: 'home', label: 'Go to Home', icon: House, href: '/' },
         { id: 'dashboard', label: 'Dashboard', icon: LayoutCellsLarge, href: '/dashboard/admin' },
         { id: 'users', label: 'Users', icon: Persons, href: '/dashboard/admin/users' },
         { id: 'tasks', label: 'Tasks', icon: Briefcase, href: '/dashboard/admin/tasks' },
@@ -49,7 +52,7 @@ const NAV_MAP = {
 const ALLOWED_ROLES = ['client', 'freelancer', 'admin'];
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
-const NAVBAR_HEIGHT = 84;
+const NAVBAR_HEIGHT = 0;
 const DASH_TOPBAR_HEIGHT = 56;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -60,7 +63,7 @@ function getInitials(name) {
 function routeToNavId(pathname, navItems) {
     if (!pathname) return 'dashboard';
     const matched = navItems.find(
-        item => item.id !== 'dashboard' && pathname.startsWith(item.href)
+        item => item.id !== 'dashboard' && item.id !== 'home' && pathname.startsWith(item.href)
     );
     return matched ? matched.id : 'dashboard';
 }
@@ -146,29 +149,23 @@ function FullSidebarContent({ navItems, activeId, onToggle, onClose, onLogout, u
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            {/* Header */}
+            {/* Header — Logo + Brand */}
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '0 14px',
-                height: 56,
+                height: 64,
                 borderBottom: '1px solid rgba(255,255,255,0.07)',
                 flexShrink: 0,
             }}>
                 <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
-                    <div style={{
-                        width: 30, height: 30, borderRadius: 8,
-                        background: 'linear-gradient(135deg, #ff4d00, #cc3d00)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 0 12px rgba(255,77,0,0.4)', flexShrink: 0,
-                    }}>
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-                            <path d="M3 13L8 3L13 13" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M5 9.5H11" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-                        </svg>
-                    </div>
-                    {isMobile && (
-                        <span style={{ fontSize: 15, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>Taskly</span>
-                    )}
+                    <img
+                        src="https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"
+                        alt="Taskly logo"
+                        style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 17, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                        Task<span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ly</span>
+                    </span>
                 </Link>
                 <button onClick={onToggle} style={{
                     width: 30, height: 30, borderRadius: 8, border: 'none',
@@ -226,9 +223,16 @@ function CollapsedRail({ navItems, activeId, onToggle, onLogout, user }) {
     const initials = getInitials(user?.name);
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
-            <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.07)', width: '100%', flexShrink: 0 }}>
-                <button onClick={onToggle} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)' }}>
-                    <LayoutSideContentLeft width={16} height={16} />
+            <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.07)', width: '100%', flexShrink: 0, flexDirection: 'column', gap: 6, padding: '8px 0' }}>
+                <Link href="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+                    <img
+                        src="https://i.ibb.co.com/RkRMLc0c/Untitled-design.png"
+                        alt="Taskly"
+                        style={{ width: 28, height: 28, borderRadius: 7, objectFit: 'cover' }}
+                    />
+                </Link>
+                <button onClick={onToggle} style={{ width: 24, height: 20, borderRadius: 6, border: 'none', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)' }}>
+                    <LayoutSideContentLeft width={13} height={13} />
                 </button>
             </div>
             <div style={{ padding: '12px 0 8px' }}>
@@ -294,6 +298,22 @@ export default function DashboardSidebar({ children }) {
                     -webkit-text-fill-color: #fff !important;
                 }
 
+                .dash-page-container {
+                    padding: 32px 24px 60px;
+                    max-width: 1100px;
+                    margin: 0 auto;
+                    font-family: system-ui, -apple-system, sans-serif;
+                    color: #fff;
+                    box-sizing: border-box;
+                    width: 100%;
+                    position: relative;
+                }
+                @media (max-width: 640px) {
+                    .dash-page-container {
+                        padding: 20px 14px 40px;
+                    }
+                }
+
                 .dash-wrapper {
                     display: flex;
                     margin-top: ${NAVBAR_HEIGHT}px;
@@ -341,11 +361,7 @@ export default function DashboardSidebar({ children }) {
                     .dash-mobile-topbar { display: flex !important; }
                     .dash-main { padding-top: ${DASH_TOPBAR_HEIGHT}px; }
                 }
-                @media (min-width: 640px) {
-                    .dash-wrapper { margin-top: 88px; min-height: calc(100vh - 88px); }
-                    .desktop-sidebar { top: 88px; height: calc(100vh - 88px); }
-                    .dash-mobile-topbar { top: 88px; }
-                }
+
             `}</style>
 
             <div className="dash-wrapper">

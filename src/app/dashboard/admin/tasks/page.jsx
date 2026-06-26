@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { getAllTasks, deleteTask } from '@/lib/api/admin/adminApi';
 import { Briefcase, ArrowLeft, TrashBin } from '@gravity-ui/icons';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 export default function AdminTasksPage() {
@@ -65,8 +65,8 @@ export default function AdminTasksPage() {
     };
 
     return (
-        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
-            <Toaster position="top-center" toastOptions={{ style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 } }} />
+        <div className="dash-page-container">
+
 
             <div style={{ marginBottom: 20 }}>
                 <Link href="/dashboard/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}
@@ -107,7 +107,8 @@ export default function AdminTasksPage() {
                             </thead>
                             <tbody>
                                 {tasks.map((task, idx) => {
-                                    const st = statusColors[task.status] || statusColors.open;
+                                    const sNormalized = (task.status || '').toLowerCase().replace('_', '-');
+                                    const st = statusColors[sNormalized] || statusColors.open;
                                     return (
                                         <tr key={task._id} style={{
                                             borderBottom: idx < tasks.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',

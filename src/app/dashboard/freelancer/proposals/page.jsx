@@ -72,7 +72,7 @@ export default function MyProposalsPage() {
     const avgBid = totalBids > 0 ? (proposals.reduce((sum, p) => sum + (p.proposedBudget || 0), 0) / totalBids).toFixed(2) : '0.00';
 
     return (
-        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
+        <div className="dash-page-container">
             {/* Breadcrumb / Back */}
             <div style={{ marginBottom: 20 }}>
                 <Link href="/dashboard/freelancer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}

@@ -6,7 +6,7 @@ import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
 import { updateTask } from '@/lib/api/client/updateTask';
 import { Briefcase, Clock, ArrowLeft, Check } from '@gravity-ui/icons';
 import Link from 'next/link';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import RatingModal from '@/components/shared/RatingModal';
 import StarRating from '@/components/shared/StarRating';
 import { getRatingsMapByProposalId, mergeRatingsMaps, normalizeId } from '@/lib/clientRatings';
@@ -178,12 +178,8 @@ export default function ActiveProjectsPage() {
     const completedGigs = tasks.filter(t => t.status?.toLowerCase() === 'completed');
 
     return (
-        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff', position: 'relative' }}>
-            <Toaster position="top-center" toastOptions={{
-                style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 },
-                success: { iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' } },
-                error:   { iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' } },
-            }} />
+        <div className="dash-page-container">
+
 
             {/* Ambient background glow */}
             <div style={{
@@ -278,7 +274,7 @@ export default function ActiveProjectsPage() {
                             </p>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 330px), 1fr))', gap: 20 }}>
                             {activeGigs.map(task => (
                                 <div key={task._id} style={{
                                     background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.06)',
@@ -353,7 +349,7 @@ export default function ActiveProjectsPage() {
                             </p>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 330px), 1fr))', gap: 20 }}>
                             {completedGigs.map(task => (
                                 <div key={task._id} style={{
                                     background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)',

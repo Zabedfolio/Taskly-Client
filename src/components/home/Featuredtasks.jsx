@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import TaskCard from "./home-components/Taskcard";
 import { getAllTasks } from "@/lib/api/home/getAllTasks";
 import TaskDetailModal from "@/components/shared/TaskDetailModal";
-import { Toaster } from "react-hot-toast";
+
 
 const STATIC_TASKS = [
   {
@@ -160,11 +160,7 @@ export default function FeaturedTasks({ tasks }) {
 
   return (
     <section className="relative w-full overflow-hidden py-24 bg-black">
-      <Toaster position="top-center" toastOptions={{
-        style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 },
-        success: { iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' } },
-        error:   { iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' } },
-      }} />
+
 
       {/* Ambient glow */}
       <div

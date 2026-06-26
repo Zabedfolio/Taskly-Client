@@ -35,7 +35,7 @@ export default function BookmarksPage() {
     }, [bookmarks]);
 
     return (
-        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
+        <div className="dash-page-container">
 
             {/* Breadcrumb */}
             <div style={{ marginBottom: 20 }}>
@@ -101,7 +101,7 @@ export default function BookmarksPage() {
 
             {/* Task grid */}
             {!loading && tasks.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 18 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 18 }}>
                     {tasks.map(task => (
                         <div
                             key={task._id}

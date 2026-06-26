@@ -7,7 +7,7 @@ import { getClientProposals } from '@/lib/api/client/getClientProposals';
 import { updateProposalStatus } from '@/lib/api/client/updateProposalStatus';
 import { createCheckoutSession } from '@/lib/api/client/stripePayments';
 import { FileText, Calendar, Clock, CircleDollar, ChevronDown, ChevronUp, Check, Xmark, Envelope } from '@gravity-ui/icons';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 export default function ClientProposalsPage() {
@@ -114,25 +114,8 @@ export default function ClientProposalsPage() {
     const avgBid = totalReceived > 0 ? (proposals.reduce((sum, p) => sum + (p.proposedBudget || 0), 0) / totalReceived).toFixed(2) : '0.00';
 
     return (
-        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
-            <Toaster
-                position="top-center"
-                toastOptions={{
-                    style: {
-                        background: '#1a1a1a',
-                        color: '#fff',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        fontSize: 13,
-                        borderRadius: 10,
-                    },
-                    error: {
-                        iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' },
-                    },
-                    success: {
-                        iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' },
-                    },
-                }}
-            />
+        <div className="dash-page-container">
+
 
             {/* Header */}
             <div style={{ marginBottom: 32 }}>

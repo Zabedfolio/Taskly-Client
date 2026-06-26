@@ -155,7 +155,7 @@ export default function FreelancerEarningsPage() {
     };
 
     return (
-        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
+        <div className="dash-page-container">
             <style>{`
                 @keyframes fadeUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
                 
@@ -277,7 +277,7 @@ export default function FreelancerEarningsPage() {
             )}
 
             {/* Quick Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18, marginBottom: 40, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 18, marginBottom: 40, position: 'relative', zIndex: 1 }}>
                 {cards.map((c, idx) => {
                     const Icon = c.icon;
                     return (

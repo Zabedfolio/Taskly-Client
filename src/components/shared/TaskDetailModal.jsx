@@ -7,6 +7,30 @@ import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
 import toast from 'react-hot-toast';
 import { useBookmarks } from '@/contexts/BookmarkContext';
 import FreelancerDetailModal from './FreelancerDetailModal';
+import {
+    Thunderbolt, Smartphone, Palette, Paintbrush, PencilToLine,
+    Video, Megaphone, Magnifier, Comment, ChartBar, Bulb, Briefcase,
+} from '@gravity-ui/icons';
+
+const CATEGORY_ICON_MAP = {
+    thunderbolt:  Thunderbolt,
+    smartphone:   Smartphone,
+    palette:      Palette,
+    paintbrush:   Paintbrush,
+    pencilToLine: PencilToLine,
+    video:        Video,
+    megaphone:    Megaphone,
+    magnifier:    Magnifier,
+    comment:      Comment,
+    chartBar:     ChartBar,
+    bulb:         Bulb,
+    briefcase:    Briefcase,
+};
+
+function CategoryIcon({ iconKey, color, size = 10 }) {
+    const Icon = CATEGORY_ICON_MAP[iconKey] || Briefcase;
+    return <Icon width={size} height={size} style={{ color, flexShrink: 0 }} />;
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmt   = (n) => `$${Number(n).toLocaleString()}`;
@@ -17,27 +41,27 @@ const daysLeft = (iso) => {
 };
 
 const CATEGORY_THEMES = {
-    'Web Development':       { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   icon: '⚡' },
-    'Mobile Development':    { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   icon: '📱' },
-    'UI / UX Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   icon: '🎨' },
-    'Graphic Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   icon: '📐' },
-    'Copywriting & Content': { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', icon: '✍️' },
-    'Video & Animation':     { textColor: '#fb7185', bg: 'rgba(240,50,80,0.08)',  border: 'rgba(240,50,80,0.22)',  icon: '🎬' },
-    'Digital Marketing':     { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  icon: '📈' },
-    'SEO':                   { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  icon: '🔍' },
-    'Customer Support':      { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '💬' },
-    'Accounting & Finance':  { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '📊' },
-    'Other':                 { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '💡' },
-    // Mapped aliases from home page TaskCard
-    'UI Design':             { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   icon: '🎨' },
-    'Development':           { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   icon: '⚡' },
-    'Copywriting':           { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', icon: '✍️' },
-    'Marketing':             { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  icon: '📈' },
-    'Video':                 { textColor: '#fb7185', bg: 'rgba(240,50,80,0.08)',  border: 'rgba(240,50,80,0.22)',  icon: '🎬' },
+    'Web Development':       { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'thunderbolt'  },
+    'Mobile Development':    { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'smartphone'   },
+    'UI / UX Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   iconKey: 'palette'      },
+    'Graphic Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   iconKey: 'paintbrush'   },
+    'Copywriting & Content': { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', iconKey: 'pencilToLine'  },
+    'Video & Animation':     { textColor: '#fb7185', bg: 'rgba(240,50,80,0.08)',  border: 'rgba(240,50,80,0.22)',  iconKey: 'video'        },
+    'Digital Marketing':     { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  iconKey: 'megaphone'    },
+    'SEO':                   { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  iconKey: 'magnifier'    },
+    'Customer Support':      { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'comment'     },
+    'Accounting & Finance':  { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'chartBar'    },
+    'Other':                 { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'bulb'        },
+    // Mapped aliases
+    'UI Design':             { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   iconKey: 'palette'     },
+    'Development':           { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'thunderbolt' },
+    'Copywriting':           { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', iconKey: 'pencilToLine' },
+    'Marketing':             { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  iconKey: 'megaphone'   },
+    'Video':                 { textColor: '#fb7185', bg: 'rgba(240,50,80,0.08)',  border: 'rgba(240,50,80,0.22)',  iconKey: 'video'       },
 };
 
 function getTheme(cat) {
-    return CATEGORY_THEMES[cat] || { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '💼' };
+    return CATEGORY_THEMES[cat] || { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'briefcase' };
 }
 
 // ─── Inline label component ───────────────────────────────────────────────────
@@ -208,8 +232,10 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                     fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',
                                     color: theme.textColor, background: theme.bg, border: `1px solid ${theme.border}`,
                                     padding: '3px 9px', borderRadius: 6,
+                                    display: 'inline-flex', alignItems: 'center', gap: 4,
                                 }}>
-                                    {theme.icon} {task.category}
+                                    <CategoryIcon iconKey={theme.iconKey} color={theme.textColor} size={10} />
+                                    {task.category}
                                 </span>
                                 <span style={{
                                     fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',

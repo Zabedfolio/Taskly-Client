@@ -322,8 +322,17 @@ export default function LoginPage() {
         setLoading(false);
     }
 
-    function handleGoogle() {
-        // TODO: signIn("google", { callbackUrl: "/dashboard" })
+    async function handleGoogle() {
+        setError("");
+        try {
+            await authClient.signIn.social({
+                provider: "google",
+                callbackURL: "/"
+            });
+        } catch (err) {
+            console.error("Google login error:", err);
+            setError(err.message || "Failed to log in with Google.");
+        }
     }
 
     return (

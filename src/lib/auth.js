@@ -13,6 +13,12 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+  },
   user: {
     additionalFields: {
       role: {
@@ -21,6 +27,13 @@ export const auth = betterAuth({
         returned: true,
         input: true,
         defaultValue: "client",
+      },
+      onboardingComplete: {
+        type: "boolean",
+        required: false,
+        returned: true,
+        input: true,
+        defaultValue: false,
       },
       isBlocked: {
         type: "boolean",

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { getAdminTransactions } from '@/lib/api/admin/adminApi';
 import { CreditCard, ArrowLeft, CircleDollar, CircleCheck, CircleExclamation, Clock } from '@gravity-ui/icons';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 export default function AdminTransactionsPage() {
@@ -56,8 +56,8 @@ export default function AdminTransactionsPage() {
     };
 
     return (
-        <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
-            <Toaster position="top-center" toastOptions={{ style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 } }} />
+        <div className="dash-page-container">
+
 
             <div style={{ marginBottom: 20 }}>
                 <Link href="/dashboard/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}

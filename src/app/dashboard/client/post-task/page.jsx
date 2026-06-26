@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Briefcase } from '@gravity-ui/icons';
 import { createTask } from '@/lib/api/client/newTasks';
 
@@ -227,24 +227,7 @@ export default function ClientPostTask() {
 
     return (
         <>
-            <Toaster
-                position="top-center"
-                toastOptions={{
-                    style: {
-                        background: '#1a1a1a',
-                        color: '#fff',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        fontSize: 13,
-                        borderRadius: 10,
-                    },
-                    error: {
-                        iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' },
-                    },
-                    success: {
-                        iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' },
-                    },
-                }}
-            />
+
 
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
@@ -258,15 +241,22 @@ export default function ClientPostTask() {
                     box-shadow: 0 0 28px rgba(255,77,0,0.45) !important;
                     transform: translateY(-1px);
                 }
-                .post-submit:active:not(:disabled) { transform: translateY(0); }
+                 .post-submit:active:not(:disabled) { transform: translateY(0); }
+                 .post-task-container {
+                     max-width: 680px;
+                     margin: 0 auto;
+                     padding: 40px 24px 80px;
+                     font-family: system-ui, -apple-system, sans-serif;
+                     box-sizing: border-box;
+                 }
+                 @media (max-width: 640px) {
+                     .post-task-container {
+                         padding: 30px 16px 60px;
+                     }
+                 }
             `}</style>
 
-            <div style={{
-                maxWidth: 680,
-                margin: '0 auto',
-                padding: '40px 24px 80px',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}>
+            <div className="post-task-container">
 
                 {/* ── Page header ── */}
                 <div style={{ marginBottom: 36 }}>

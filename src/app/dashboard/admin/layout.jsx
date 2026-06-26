@@ -3,13 +3,9 @@ import React from 'react';
 
 const AdminDashboardLayout = ({ children }) => {
     return (
-        <div className="flex">
-            <DashboardSidebar />
-
-            <main className="flex-1 p-6 pt-25">
-                {children}
-            </main>
-        </div>
+        <DashboardSidebar>
+            {children}
+        </DashboardSidebar>
     );
 };
 

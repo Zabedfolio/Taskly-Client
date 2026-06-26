@@ -3,11 +3,35 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getAllTasks } from '@/lib/api/home/getAllTasks';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import TaskDetailModal from '@/components/shared/TaskDetailModal';
 import ClientRatingBadge from '@/components/shared/ClientRatingBadge';
 import { useSession } from '@/lib/auth-client';
 import { useBookmarks } from '@/contexts/BookmarkContext';
+import {
+    Thunderbolt, Smartphone, Palette, Paintbrush, PencilToLine,
+    Video, Megaphone, Magnifier, Comment, ChartBar, Bulb, Briefcase, Flame,
+} from '@gravity-ui/icons';
+
+const CATEGORY_ICON_MAP = {
+    thunderbolt:  Thunderbolt,
+    smartphone:   Smartphone,
+    palette:      Palette,
+    paintbrush:   Paintbrush,
+    pencilToLine: PencilToLine,
+    video:        Video,
+    megaphone:    Megaphone,
+    magnifier:    Magnifier,
+    comment:      Comment,
+    chartBar:     ChartBar,
+    bulb:         Bulb,
+    briefcase:    Briefcase,
+};
+
+function CategoryIcon({ iconKey, color, size = 10 }) {
+    const Icon = CATEGORY_ICON_MAP[iconKey] || Briefcase;
+    return <Icon width={size} height={size} style={{ color, flexShrink: 0 }} />;
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -17,21 +41,21 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_THEMES = {
-    'Web Development':       { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   icon: '⚡' },
-    'Mobile Development':    { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   icon: '📱' },
-    'UI / UX Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   icon: '🎨' },
-    'Graphic Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   icon: '📐' },
-    'Copywriting & Content': { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', icon: '✍️' },
-    'Video & Animation':     { textColor: '#fb7185', bg: 'rgba(240,50,80,0.08)',  border: 'rgba(240,50,80,0.22)',  icon: '🎬' },
-    'Digital Marketing':     { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  icon: '📈' },
-    'SEO':                   { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  icon: '🔍' },
-    'Customer Support':      { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '💬' },
-    'Accounting & Finance':  { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '📊' },
-    'Other':                 { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '💡' },
+    'Web Development':       { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'thunderbolt' },
+    'Mobile Development':    { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'smartphone'   },
+    'UI / UX Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   iconKey: 'palette'      },
+    'Graphic Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   iconKey: 'paintbrush'   },
+    'Copywriting & Content': { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', iconKey: 'pencilToLine'  },
+    'Video & Animation':     { textColor: '#fb7185', bg: 'rgba(240,50,80,0.08)',  border: 'rgba(240,50,80,0.22)',  iconKey: 'video'        },
+    'Digital Marketing':     { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  iconKey: 'megaphone'    },
+    'SEO':                   { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  iconKey: 'magnifier'    },
+    'Customer Support':      { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'comment'     },
+    'Accounting & Finance':  { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'chartBar'    },
+    'Other':                 { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'bulb'        },
 };
 
 function getTheme(cat) {
-    return CATEGORY_THEMES[cat] || { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', icon: '💼' };
+    return CATEGORY_THEMES[cat] || { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'briefcase' };
 }
 
 const fmt    = (n) => `$${Number(n).toLocaleString()}`;
@@ -212,11 +236,7 @@ export default function BrowseTasksPage() {
     // ─────────────────────────────────────────────────────────────────────────
     return (
         <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: 'system-ui,-apple-system,sans-serif' }}>
-            <Toaster position="top-center" toastOptions={{
-                style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 },
-                success: { iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' } },
-                error:   { iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' } },
-            }} />
+
 
             <style>{`
                 @keyframes spin    { to { transform: rotate(360deg); } }
@@ -224,17 +244,53 @@ export default function BrowseTasksPage() {
                 @keyframes fadeUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
                 @keyframes scaleIn { from { opacity:0; transform:scale(0.96); } to { opacity:1; transform:scale(1); } }
                 .browse-input {
-                    padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.09);
-                    background: rgba(255,255,255,0.04); color: #fff; outline: none;
-                    font-size: 13.5px; transition: border 0.2s; box-sizing: border-box;
+                    padding: 11px 14px; border-radius: 10px;
+                    border: 1px solid rgba(255,255,255,0.09);
+                    background: rgba(255,255,255,0.03); color: #fff; outline: none;
+                    font-size: 13.5px; transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+                    box-sizing: border-box; font-family: inherit; width: 100%;
                 }
-                .browse-input:focus { border-color: #ff4d00; background: rgba(255,77,0,0.04); }
+                .browse-input:focus {
+                    border-color: rgba(255,77,0,0.6);
+                    background: rgba(255,77,0,0.04);
+                    box-shadow: 0 0 0 3px rgba(255,77,0,0.08);
+                }
+                .browse-input::placeholder { color: rgba(255,255,255,0.28); }
+                .browse-input-search {
+                    padding: 13px 14px 13px 44px;
+                    font-size: 14.5px;
+                    border-radius: 12px;
+                }
                 select.browse-input {
                     appearance: none; cursor: pointer;
                     background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.35)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-                    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+                    background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
                 }
-                select.browse-input option { background: #111; color: #fff; }
+                select.browse-input option { background: #1a0e06; color: #fff; }
+                input[type='number'].browse-input::-webkit-inner-spin-button,
+                input[type='number'].browse-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+                .filter-label {
+                    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+                    text-transform: uppercase; color: rgba(255,255,255,0.32);
+                    margin-bottom: 6px; display: block;
+                }
+                .filter-panel {
+                    background: rgba(255,255,255,0.025);
+                    border: 1px solid rgba(255,255,255,0.07);
+                    border-radius: 18px; padding: 20px;
+                    margin-bottom: 28px;
+                    display: flex; flex-direction: column; gap: 14px;
+                }
+                .filter-bottom-row {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 12px;
+                    align-items: end;
+                }
+                @media (max-width: 640px) {
+                    .filter-bottom-row { grid-template-columns: 1fr; }
+                    .filter-panel { padding: 16px; gap: 12px; }
+                }
                 .task-card {
                     background: #0f0604; border: 1px solid rgba(255,255,255,0.07);
                     border-radius: 16px; padding: 22px; cursor: pointer;
@@ -248,7 +304,20 @@ export default function BrowseTasksPage() {
                 }
                 .task-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(255,77,0,0.12), 0 0 0 1px rgba(255,77,0,0.22); border-color: rgba(255,77,0,0.3); }
                 .task-card:hover::before { transform: scaleX(1); }
-                .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; }
+                .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 18px; }
+                .browse-container {
+                    position: relative;
+                    z-index: 1;
+                    max-width: 1160px;
+                    margin: 0 auto;
+                    padding: 110px 24px 80px;
+                    box-sizing: border-box;
+                }
+                @media (max-width: 640px) {
+                    .browse-container {
+                        padding: 95px 16px 60px;
+                    }
+                }
                 .modal-form-input {
                     padding: 10px 13px; border-radius: 10px;
                     border: 1px solid rgba(255,255,255,0.09);
@@ -272,9 +341,6 @@ export default function BrowseTasksPage() {
                     .modal-inner { flex-direction: column !important; }
                     .modal-right-panel { border-left: none !important; border-top: 1px solid rgba(255,255,255,0.07) !important; }
                 }
-                @media(max-width:640px) {
-                    .filter-row { flex-direction: column !important; }
-                    .browse-input { width: 100%; }
                 }
             `}</style>
 
@@ -286,7 +352,7 @@ export default function BrowseTasksPage() {
                 filter: 'blur(40px)',
             }} />
 
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: 1160, margin: '0 auto', padding: '110px 24px 80px' }}>
+            <div className="browse-container">
 
                 {/* ── Page Header ── */}
                 <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
@@ -317,45 +383,89 @@ export default function BrowseTasksPage() {
                 </div>
 
                 {/* ── Filter Panel ── */}
-                <div className="filter-row" style={{
-                    display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: 16, padding: 18, marginBottom: 28,
-                }}>
-                    <div style={{ flex: 2, minWidth: 220, position: 'relative' }}>
-                        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}>
-                            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                <div className="filter-panel">
+                    {/* Row 1: Search */}
+                    <div style={{ position: 'relative' }}>
+                        <span style={{
+                            position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                            color: 'rgba(255,255,255,0.3)', pointerEvents: 'none', display: 'flex',
+                        }}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
                                 <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                             </svg>
                         </span>
-                        <input type="text" placeholder="Search tasks…" className="browse-input"
-                            value={search} onChange={e => setSearch(e.target.value)}
-                            style={{ paddingLeft: 38, width: '100%' }}
+                        <input
+                            id="browse-search"
+                            type="text"
+                            placeholder="Search tasks by title, description, or skill…"
+                            className="browse-input browse-input-search"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
                         />
                     </div>
-                    <select className="browse-input" value={category} onChange={e => setCategory(e.target.value)} style={{ flex: 1, minWidth: 160 }}>
-                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <div style={{ position: 'relative', flex: 0.7, minWidth: 110 }}>
-                        <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}>$</span>
-                        <input type="number" placeholder="Min Budget" className="browse-input"
-                            value={minBudget} onChange={e => setMinBudget(e.target.value)}
-                            style={{ paddingLeft: 22, width: '100%' }}
-                        />
+
+                    {/* Row 2: Category + Budget + Sort + Clear */}
+                    <div className="filter-bottom-row">
+                        <div>
+                            <label className="filter-label" htmlFor="browse-category">Category</label>
+                            <select
+                                id="browse-category"
+                                className="browse-input"
+                                value={category}
+                                onChange={e => setCategory(e.target.value)}
+                            >
+                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="filter-label" htmlFor="browse-budget">Min Budget ($)</label>
+                            <div style={{ position: 'relative' }}>
+                                <span style={{
+                                    position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+                                    fontSize: 13, color: 'rgba(255,255,255,0.3)', pointerEvents: 'none',
+                                }}>$</span>
+                                <input
+                                    id="browse-budget"
+                                    type="number"
+                                    placeholder="0"
+                                    className="browse-input"
+                                    value={minBudget}
+                                    onChange={e => setMinBudget(e.target.value)}
+                                    style={{ paddingLeft: 24 }}
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <label className="filter-label" style={{ margin: 0 }} htmlFor="browse-sort">Sort By</label>
+                                {hasFilters && (
+                                    <button
+                                        onClick={() => { setSearch(''); setCategory('All Categories'); setMinBudget(''); setSort('newest'); }}
+                                        style={{
+                                            background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.2)',
+                                            color: '#ff6b30', fontSize: 10.5, fontWeight: 700, cursor: 'pointer',
+                                            padding: '2px 9px', borderRadius: 6, letterSpacing: '0.06em',
+                                            textTransform: 'uppercase', transition: 'background 0.15s',
+                                        }}
+                                    >
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+                            <select
+                                id="browse-sort"
+                                className="browse-input"
+                                value={sort}
+                                onChange={e => setSort(e.target.value)}
+                            >
+                                <option value="newest">Latest Posted</option>
+                                <option value="budget-high">Budget: High → Low</option>
+                                <option value="budget-low">Budget: Low → High</option>
+                                <option value="deadline">Soonest Deadline</option>
+                            </select>
+                        </div>
                     </div>
-                    <select className="browse-input" value={sort} onChange={e => setSort(e.target.value)} style={{ flex: 1, minWidth: 150 }}>
-                        <option value="newest">Latest Posted</option>
-                        <option value="budget-high">Budget: High → Low</option>
-                        <option value="budget-low">Budget: Low → High</option>
-                        <option value="deadline">Soonest Deadline</option>
-                    </select>
-                    {hasFilters && (
-                        <button onClick={() => { setSearch(''); setCategory('All Categories'); setMinBudget(''); setSort('newest'); }}
-                            style={{ background: 'transparent', border: 'none', color: '#ff4d00', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '6px 10px', textDecoration: 'underline', whiteSpace: 'nowrap' }}>
-                            Clear
-                        </button>
-                    )}
                 </div>
 
                 {/* ── Task Grid ── */}
@@ -420,12 +530,13 @@ export default function BrowseTasksPage() {
                                         </button>
                                     )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingRight: user ? 32 : 0 }}>
-                                        <span style={{ fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace', color: theme.textColor, background: theme.bg, border: `1px solid ${theme.border}`, padding: '3px 8px', borderRadius: 6 }}>
-                                            {theme.icon} {task.category}
+                                        <span style={{ fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace', color: theme.textColor, background: theme.bg, border: `1px solid ${theme.border}`, padding: '3px 8px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                            <CategoryIcon iconKey={theme.iconKey} color={theme.textColor} size={10} />
+                                            {task.category}
                                         </span>
                                         {Number(task.budget) >= 500 && (
-                                            <span style={{ fontSize: 9, fontWeight: 800, color: '#22c55e', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.22)', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                                                🔥 High Budget
+                                            <span style={{ fontSize: 9, fontWeight: 800, color: '#22c55e', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.22)', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                                <Flame width={9} height={9} style={{ color: '#22c55e' }} /> High Budget
                                             </span>
                                         )}
                                     </div>

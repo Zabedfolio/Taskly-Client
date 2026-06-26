@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { confirmSession } from '@/lib/api/client/stripePayments';
 import { CreditCard, ArrowLeft, Lock, Briefcase, Envelope, Person, Copy, Check } from '@gravity-ui/icons';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -193,11 +193,7 @@ function CheckoutContent() {
             position: 'relative',
             overflowX: 'hidden'
         }}>
-            <Toaster position="top-center" toastOptions={{
-                style: { background: '#180802', color: '#fff', border: '1px solid rgba(255,77,0,0.15)', fontSize: 13, borderRadius: 10 },
-                success: { iconTheme: { primary: '#22c55e', secondary: '#180802' } },
-                error: { iconTheme: { primary: '#ff4d00', secondary: '#180802' } }
-            }} />
+
 
             {/* Back button — positioned below fixed navbar (~80px from top) */}
             <div style={{ position: 'absolute', top: 82, left: 28, zIndex: 10 }}>

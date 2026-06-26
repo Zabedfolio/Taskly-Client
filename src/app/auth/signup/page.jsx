@@ -483,6 +483,7 @@ export default function SignUpPage() {
         role,
         skills: skills.length > 0 ? skills.join(", ") : undefined, // better-auth expects string additional field
         bio: bio || undefined,
+        onboardingComplete: true,
     });
 
     if (error) {
@@ -502,9 +503,17 @@ export default function SignUpPage() {
     // keep loading=true so button stays disabled during navigation
 }
 
-    function handleGoogle() {
-        // Google users are always saved as Client
-        // TODO: signIn("google", { callbackUrl: "/dashboard" })
+    async function handleGoogle() {
+        setError("");
+        try {
+            await authClient.signIn.social({
+                provider: "google",
+                callbackURL: "/"
+            });
+        } catch (err) {
+            console.error("Google signup error:", err);
+            setError(err.message || "Failed to sign up with Google.");
+        }
     }
 
     return (

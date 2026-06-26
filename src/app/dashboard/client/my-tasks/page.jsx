@@ -5,7 +5,7 @@ import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Plus, Briefcase, Pencil, TrashBin, Ellipsis, Eye, Xmark } from '@gravity-ui/icons';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { getTasksById } from '@/lib/api/client/getTasksById';
 import { deleteTask }    from '@/lib/api/client/deleteTask';
 import { updateTask }    from '@/lib/api/client/updateTask';
@@ -72,7 +72,8 @@ function SkeletonRow() {
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
-    const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.open;
+    const sNormalized = (status || '').toLowerCase().replace('-', '_');
+    const cfg = STATUS_CONFIG[sNormalized] || STATUS_CONFIG.open;
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -678,15 +679,21 @@ export default function MyTasksPage() {
     // ── Client-side status filter ─────────────────────────────────────────────
     const visibleTasks = activeStatus === 'all'
         ? allTasks
-        : allTasks.filter(t => t.status === activeStatus);
+        : allTasks.filter(t => {
+            const s = (t.status || '').toLowerCase().replace('-', '_');
+            return s === activeStatus;
+        });
 
     // ── Tab counts ────────────────────────────────────────────────────────────
     const counts = {
         all:         allTasks.length,
-        open:        allTasks.filter(t => t.status === 'open').length,
-        in_progress: allTasks.filter(t => t.status === 'in_progress').length,
-        completed:   allTasks.filter(t => t.status === 'completed').length,
-        cancelled:   allTasks.filter(t => t.status === 'cancelled').length,
+        open:        allTasks.filter(t => (t.status || '').toLowerCase() === 'open').length,
+        in_progress: allTasks.filter(t => {
+            const s = (t.status || '').toLowerCase().replace('-', '_');
+            return s === 'in_progress';
+        }).length,
+        completed:   allTasks.filter(t => (t.status || '').toLowerCase() === 'completed').length,
+        cancelled:   allTasks.filter(t => (t.status || '').toLowerCase() === 'cancelled').length,
     };
 
     // ── Stats (always from full list) ─────────────────────────────────────────
@@ -740,11 +747,7 @@ export default function MyTasksPage() {
 
     return (
         <>
-            <Toaster position="top-center" toastOptions={{
-                style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 },
-                success: { iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' } },
-                error:   { iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' } },
-            }} />
+
 
             {deleteTarget && (
                 <DeleteModal
@@ -800,7 +803,7 @@ export default function MyTasksPage() {
                 @media (min-width: 768px) and (max-width: 1023px) { .col-desc, .col-client { display: none; } }
             `}</style>
 
-            <div style={{ padding: '32px 24px 60px', maxWidth: 1100, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+            <div className="dash-page-container">
 
                 {/* ── Header ── */}
                 <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>

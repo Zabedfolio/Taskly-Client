@@ -5,13 +5,30 @@ import ClientRatingBadge from "@/components/shared/ClientRatingBadge";
 import { useSession } from "@/lib/auth-client";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import toast from "react-hot-toast";
+import {
+    Thunderbolt, Palette, PencilToLine, Megaphone, Video, Briefcase,
+} from '@gravity-ui/icons';
+
+const CATEGORY_ICON_MAP = {
+    thunderbolt:  Thunderbolt,
+    palette:      Palette,
+    pencilToLine: PencilToLine,
+    megaphone:    Megaphone,
+    video:        Video,
+    briefcase:    Briefcase,
+};
+
+function CategoryIcon({ iconKey, color, size = 9 }) {
+    const Icon = CATEGORY_ICON_MAP[iconKey] || Briefcase;
+    return <Icon width={size} height={size} style={{ color, flexShrink: 0 }} />;
+}
 
 const CATEGORY_STYLES = {
-  "UI Design":   { textColor: "#ff9a50", bg: "#ff640020", border: "#ff640038", icon: "🎨" },
-  "Development": { textColor: "#50d4ff", bg: "#00aaff1a", border: "#00aaff33", icon: "⚡" },
-  "Copywriting": { textColor: "#a78bfa", bg: "#7850ff1a", border: "#7850ff33", icon: "✍️" },
-  "Marketing":   { textColor: "#34d399", bg: "#00c8781a", border: "#00c87833", icon: "📈" },
-  "Video":       { textColor: "#fb7185", bg: "#f032501a", border: "#f0325033", icon: "🎬" },
+  "UI Design":   { textColor: "#ff9a50", bg: "#ff640020", border: "#ff640038", iconKey: "palette"      },
+  "Development": { textColor: "#50d4ff", bg: "#00aaff1a", border: "#00aaff33", iconKey: "thunderbolt"  },
+  "Copywriting": { textColor: "#a78bfa", bg: "#7850ff1a", border: "#7850ff33", iconKey: "pencilToLine" },
+  "Marketing":   { textColor: "#34d399", bg: "#00c8781a", border: "#00c87833", iconKey: "megaphone"   },
+  "Video":       { textColor: "#fb7185", bg: "#f032501a", border: "#f0325033", iconKey: "video"       },
 };
 
 function getDeadlineColor(dueDateStr) {
@@ -101,7 +118,8 @@ export default function TaskCard({ task, index = 0, onClick }) {
               border: `1px solid ${cat.border}`,
             }}
           >
-            {cat.icon} {task.category}
+            <CategoryIcon iconKey={cat.iconKey} color={cat.textColor} size={9} />
+            {task.category}
           </span>
         </div>
 

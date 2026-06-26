@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Gear, Person, Bell, Lock, ArrowRightFromSquare, TrashBin, Pencil, Eye, EyeSlash } from '@gravity-ui/icons';
 
 /* ─────────────────────────────────────────────────────────────
@@ -289,11 +289,7 @@ export default function AdminSettingsPage() {
 
     return (
         <>
-            <Toaster position="top-center" toastOptions={{
-                style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 },
-                success: { iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' } },
-                error: { iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' } },
-            }} />
+
 
             {dangerModal === 'logout-all' && (
                 <DangerModal
@@ -308,10 +304,23 @@ export default function AdminSettingsPage() {
 
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
-                input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+                 input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+                 .settings-container {
+                     max-width: 720px;
+                     margin: 0 auto;
+                     padding: 32px 24px 80px;
+                     font-family: system-ui, -apple-system, sans-serif;
+                     color: #fff;
+                     box-sizing: border-box;
+                 }
+                 @media (max-width: 640px) {
+                     .settings-container {
+                         padding: 20px 14px 60px;
+                     }
+                 }
             `}</style>
 
-            <div style={{ padding: '32px 24px 80px', maxWidth: 720, margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#fff' }}>
+            <div className="settings-container">
 
                 {/* Page title */}
                 <div style={{ marginBottom: 36 }}>
