@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useSession } from '@/lib/auth-client';
+import { useState, useEffect } from 'react';
 import { getAllTasks } from '@/lib/api/home/getAllTasks';
-import { submitProposal } from '@/lib/api/client/submitProposal';
-import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
 import toast, { Toaster } from 'react-hot-toast';
+import TaskDetailModal from '@/components/shared/TaskDetailModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -75,17 +73,10 @@ const inputStyle = (disabled) => ({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function BrowseTasksPage() {
-    const { data: session } = useSession();
-    const user = session?.user;
-
-    const [tasks, setTasks]       = useState([]);
-    const [loading, setLoading]   = useState(true);
-    const [error, setError]       = useState(null);
+    const [tasks, setTasks]           = useState([]);
+    const [loading, setLoading]       = useState(true);
+    const [error, setError]           = useState(null);
     const [activeTask, setActiveTask] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [submitted, setSubmitted]   = useState(false);
-    const [myProposals, setMyProposals] = useState([]);
-    const formRef = useRef(null);
 
     // Filters
     const [search, setSearch]         = useState('');
@@ -109,19 +100,6 @@ export default function BrowseTasksPage() {
 
     useEffect(() => { loadTasks(); }, []);
 
-    useEffect(() => {
-        if (!session?.session?.token || user?.role !== 'freelancer') return;
-        async function fetchMyProposals() {
-            try {
-                const data = await getMyProposals(session.session.token);
-                setMyProposals(data || []);
-            } catch (err) {
-                console.error("Error loading freelancer proposals in browse page:", err);
-            }
-        }
-        fetchMyProposals();
-    }, [session, user]);
-
     // ── Filter / sort ─────────────────────────────────────────────────────────
     const filtered = tasks
         .filter(t => {
@@ -140,48 +118,16 @@ export default function BrowseTasksPage() {
             return 0;
         });
 
-    // ── Proposal submit ───────────────────────────────────────────────────────
-    const handleProposalSubmit = async (e) => {
-        e.preventDefault();
-        if (!user) { toast.error('You must be logged in to apply.'); return; }
-
-        const fd = new FormData(formRef.current);
-
-        const budget = Number(fd.get('proposedBudget'));
-        const days   = Number(fd.get('estimatedDays'));
-        const note   = (fd.get('coverNote') || '').trim();
-
-        if (budget <= 0)       { toast.error('Enter a valid budget.'); return; }
-        if (days <= 0)         { toast.error('Enter estimated days.'); return; }
-        if (note.length < 20)  { toast.error('Cover note must be at least 20 characters.'); return; }
-
-        setSubmitting(true);
-        try {
-            await submitProposal(fd, { userId: user.id, taskTitle: activeTask.title });
-            setSubmitted(true);
-            toast.success('🎉 Proposal submitted!');
-            // bump proposal count optimistically
-            setTasks(prev => prev.map(t =>
-                t._id === activeTask._id ? { ...t, proposals: (t.proposals || 0) + 1 } : t
-            ));
-            // Add to myProposals optimistically so they can't submit again
-            setMyProposals(prev => [...prev, { taskId: activeTask._id }]);
-        } catch (err) {
-            toast.error(err.message || 'Submission failed. Try again.');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const openTask = (task) => {
-        setActiveTask(task);
-        setSubmitted(false);
-    };
-
+    const openTask = (task) => setActiveTask(task);
     const closeModal = () => {
+        // bump proposal count optimistically when modal closes after submission
         setActiveTask(null);
-        setSubmitted(false);
-        formRef.current?.reset();
+    };
+    // callback fired by modal after a successful proposal submit
+    const handleProposalSubmit = (taskId) => {
+        setTasks(prev => prev.map(t =>
+            t._id === taskId ? { ...t, proposals: (t.proposals || 0) + 1 } : t
+        ));
     };
 
     const hasFilters = search || category !== 'All Categories' || minBudget || sort !== 'newest';
@@ -398,353 +344,15 @@ export default function BrowseTasksPage() {
                 )}
             </div>
 
-            {/* ═══════════════════════════════════════════════════════════════
-                TASK DETAIL MODAL — two-panel layout
-            ══════════════════════════════════════════════════════════════════ */}
+            {/* ── Task Detail Modal ── */}
             {activeTask && (
-                <div
-                    onClick={closeModal}
-                    style={{
-                        position: 'fixed', inset: 0, zIndex: 300,
-                        background: 'rgba(0,0,0,0.82)',
-                        backdropFilter: 'blur(6px)',
-                        WebkitBackdropFilter: 'blur(6px)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        padding: '16px',
-                        overflowY: 'auto',
-                    }}
-                >
-                    <div
-                        onClick={e => e.stopPropagation()}
-                        className="modal-inner"
-                        style={{
-                            display: 'flex', flexDirection: 'row',
-                            width: '100%', maxWidth: 920,
-                            background: '#0f0f0f',
-                            border: '1px solid rgba(255,255,255,0.09)',
-                            borderRadius: 22,
-                            boxShadow: '0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,77,0,0.08)',
-                            overflow: 'hidden',
-                            animation: 'scaleIn 0.22s ease',
-                            maxHeight: '92vh',
-                        }}
-                    >
-                        {/* ── LEFT PANEL — Task Details ── */}
-                        <div style={{
-                            flex: 1, minWidth: 0,
-                            padding: '32px 28px',
-                            overflowY: 'auto',
-                            borderRight: '1px solid rgba(255,255,255,0.07)',
-                            display: 'flex', flexDirection: 'column', gap: 0,
-                        }}>
-                            {/* Close + category */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
-                                    <span style={{
-                                        fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',
-                                        color: getTheme(activeTask.category).textColor,
-                                        background: getTheme(activeTask.category).bg,
-                                        border: `1px solid ${getTheme(activeTask.category).border}`,
-                                        padding: '3px 9px', borderRadius: 6,
-                                    }}>
-                                        {getTheme(activeTask.category).icon} {activeTask.category}
-                                    </span>
-                                    <span style={{
-                                        fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',
-                                        color: 'rgba(255,255,255,0.28)', background: 'rgba(255,255,255,0.03)',
-                                        border: '1px solid rgba(255,255,255,0.07)', padding: '3px 9px', borderRadius: 6,
-                                    }}>
-                                        {activeTask.proposals || 0} PROPOSALS
-                                    </span>
-                                </div>
-                                <button onClick={closeModal} style={{
-                                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.4)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer', transition: 'all 0.15s',
-                                }}
-                                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'; e.currentTarget.style.color = '#fff'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            {/* Title */}
-                            <h2 style={{ fontSize: 'clamp(1.1rem,2.5vw,1.55rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.025em', lineHeight: 1.25, margin: '0 0 22px' }}>
-                                {activeTask.title}
-                            </h2>
-
-                            {/* Stats grid */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 22 }}>
-                                {[
-                                    { label: 'Client Budget', value: fmt(activeTask.budget), color: '#ff4d00', mono: true },
-                                    { label: 'Deadline', value: fmtDt(activeTask.deadline), color: '#fff' },
-                                    { label: 'Time Left', value: daysLeft(activeTask.deadline), color: 'rgba(255,255,255,0.7)' },
-                                    { label: 'Posted By', value: activeTask.clientName || 'Verified Client', color: 'rgba(255,255,255,0.7)' },
-                                ].map(({ label, value, color, mono }) => (
-                                    <div key={label} style={{ padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                        <div style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>{label}</div>
-                                        <div style={{ fontSize: mono ? 17 : 13, fontWeight: 700, color, fontFamily: mono ? "'JetBrains Mono',monospace" : 'inherit' }}>{value}</div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Task description */}
-                            <div style={{ marginBottom: 10 }}>
-                                <div style={{ fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
-                                    Task Brief
-                                </div>
-                                <div style={{
-                                    padding: 16, borderRadius: 12,
-                                    background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.05)',
-                                    fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7,
-                                    whiteSpace: 'pre-wrap', maxHeight: 200, overflowY: 'auto',
-                                }}>
-                                    {activeTask.description}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ── RIGHT PANEL — Proposal Form ── */}
-                        <div
-                            className="modal-right-panel"
-                            style={{
-                                width: 360, flexShrink: 0,
-                                padding: '32px 26px',
-                                overflowY: 'auto',
-                                display: 'flex', flexDirection: 'column',
-                                background: 'rgba(255,77,0,0.012)',
-                            }}
-                        >
-                            {submitted ? (
-                                /* ── Success State ── */
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 16, animation: 'fadeUp 0.4s ease' }}>
-                                    <div style={{
-                                        width: 64, height: 64, borderRadius: '50%',
-                                        background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.4)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}>
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                                            <path d="M5 13l4 4L19 7" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: 17, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Proposal Sent!</h3>
-                                        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.42)', margin: '0 0 20px' }}>
-                                            Your proposal has been submitted and is now <span style={{ color: '#f59e0b', fontWeight: 700 }}>pending</span> review.
-                                        </p>
-                                    </div>
-                                    <button onClick={closeModal} style={{
-                                        padding: '10px 22px', borderRadius: 10,
-                                        border: '1px solid rgba(255,255,255,0.12)',
-                                        background: 'rgba(255,255,255,0.05)', color: '#fff',
-                                        fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                                    }}>
-                                        Close
-                                    </button>
-                                </div>
-
-                            ) : !user ? (
-                                /* ── Not logged in ── */
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
-                                    <div style={{
-                                        width: 56, height: 56, borderRadius: '50%',
-                                        background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.25)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}>
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                            <rect x="5" y="11" width="14" height="11" rx="2" stroke="#ff4d00" strokeWidth="1.8"/>
-                                            <path d="M8 11V7a4 4 0 018 0v4" stroke="#ff4d00" strokeWidth="1.8" strokeLinecap="round"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Login to Apply</h3>
-                                        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)', margin: '0 0 18px', lineHeight: 1.55 }}>
-                                            Sign in with your freelancer account to submit a proposal for this gig.
-                                        </p>
-                                    </div>
-                                    <a href="/auth/login" style={{
-                                        display: 'block', width: '100%', padding: '11px', borderRadius: 11,
-                                        background: 'linear-gradient(135deg,#ff4d00,#cc3d00)',
-                                        color: '#fff', fontSize: 14, fontWeight: 700,
-                                        textDecoration: 'none', textAlign: 'center',
-                                        boxShadow: '0 4px 18px rgba(255,77,0,0.28)',
-                                    }}>
-                                        Sign In
-                                    </a>
-                                </div>
-
-                            ) : user.role !== 'freelancer' ? (
-                                /* ── Non-freelancer role locked out ── */
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
-                                    <div style={{
-                                        width: 56, height: 56, borderRadius: '50%',
-                                        background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.25)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}>
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ff4d00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M12 9v4M12 17h.01" stroke="#ff4d00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Freelancer Account Required</h3>
-                                        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)', margin: '0 0 18px', lineHeight: 1.55 }}>
-                                            Only registered freelancers can submit proposal applications for tasks.
-                                        </p>
-                                    </div>
-                                </div>
-
-                            ) : myProposals.some(p => p.taskId === activeTask._id) ? (
-                                /* ── Already applied state ── */
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
-                                    <div style={{
-                                        width: 56, height: 56, borderRadius: '50%',
-                                        background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}>
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M22 4L12 14.01l-3-3" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Already Applied</h3>
-                                        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)', margin: '0 0 18px', lineHeight: 1.55 }}>
-                                            You have already submitted a proposal for this task card.
-                                        </p>
-                                    </div>
-                                </div>
-
-                            ) : (
-                                /* ── Proposal Form ── */
-                                <>
-                                    {/* Header */}
-                                    <div style={{ marginBottom: 22 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                                            <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,77,0,0.1)', border: '1px solid rgba(255,77,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M12 20h9" stroke="#ff4d00" strokeWidth="1.8" strokeLinecap="round"/>
-                                                    <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#ff4d00" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', lineHeight: 1 }}>Submit Proposal</div>
-                                                <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Fill all fields carefully</div>
-                                            </div>
-                                        </div>
-                                        <div style={{ height: 1, background: 'linear-gradient(90deg,rgba(255,77,0,0.22),transparent)', marginTop: 14 }} />
-                                    </div>
-
-                                    {/* The Form */}
-                                    <form ref={formRef} onSubmit={handleProposalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                                        {/* Hidden: Task ID */}
-                                        <input type="hidden" name="taskId" value={activeTask._id} />
-
-                                        {/* Freelancer Email — auto-filled, readonly */}
-                                        <Field label="Your Email" icon="📧">
-                                            <input
-                                                type="email"
-                                                name="freelancerEmail"
-                                                defaultValue={user.email}
-                                                readOnly
-                                                className="modal-form-input readonly"
-                                            />
-                                        </Field>
-
-                                        {/* Task ID — visible read-only reference */}
-                                        <Field label="Task Reference" icon="🆔" hint="Auto-filled from the selected task">
-                                            <input
-                                                type="text"
-                                                value={`#${activeTask._id?.slice(-8).toUpperCase()}`}
-                                                readOnly
-                                                className="modal-form-input readonly"
-                                            />
-                                        </Field>
-
-                                        {/* Two-column: Budget + Days */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                            <Field label="Proposed Budget" icon="💰">
-                                                <div style={{ position: 'relative' }}>
-                                                    <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'rgba(255,255,255,0.3)', pointerEvents: 'none', fontFamily: 'monospace' }}>$</span>
-                                                    <input
-                                                        type="number"
-                                                        name="proposedBudget"
-                                                        required
-                                                        min="1"
-                                                        placeholder={activeTask.budget}
-                                                        className="modal-form-input"
-                                                        disabled={submitting}
-                                                        style={{ paddingLeft: 22 }}
-                                                    />
-                                                </div>
-                                            </Field>
-                                            <Field label="Est. Days" icon="📅">
-                                                <input
-                                                    type="number"
-                                                    name="estimatedDays"
-                                                    required
-                                                    min="1"
-                                                    placeholder="7"
-                                                    className="modal-form-input"
-                                                    disabled={submitting}
-                                                />
-                                            </Field>
-                                        </div>
-
-                                        {/* Cover Note */}
-                                        <Field label="Cover Note" icon="📝" hint="Min 20 characters — explain your approach">
-                                            <textarea
-                                                name="coverNote"
-                                                required
-                                                rows={5}
-                                                placeholder={`Hi, I'm a ${(user.name || 'freelancer').split(' ')[0]} and I'd love to work on this project because…`}
-                                                className="modal-form-input"
-                                                disabled={submitting}
-                                                style={{ resize: 'vertical', minHeight: 110, lineHeight: 1.6 }}
-                                            />
-                                        </Field>
-
-                                        {/* Status pill */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderRadius: 9, background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', flexShrink: 0, boxShadow: '0 0 6px rgba(245,158,11,0.6)' }} />
-                                            <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.55)', fontFamily: "'JetBrains Mono',monospace" }}>
-                                                Status will be set to{' '}
-                                                <span style={{ color: '#f59e0b', fontWeight: 700 }}>pending</span>
-                                            </span>
-                                        </div>
-
-                                        {/* Submit */}
-                                        <button
-                                            type="submit"
-                                            disabled={submitting}
-                                            className="proposal-submit-btn"
-                                        >
-                                            {submitting ? (
-                                                <>
-                                                    <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.65s linear infinite', display: 'inline-block', flexShrink: 0 }} />
-                                                    Submitting…
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                                                        <path d="M22 2L11 13" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                                                        <path d="M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                                                    </svg>
-                                                    Send My Proposal
-                                                </>
-                                            )}
-                                        </button>
-                                    </form>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <TaskDetailModal
+                    task={activeTask}
+                    onClose={closeModal}
+                    onProposalSubmit={handleProposalSubmit}
+                />
             )}
         </div>
     );
 }
+

@@ -33,6 +33,7 @@ const NAV_MAP = {
         { id: 'browse', label: 'Browse Tasks', icon: Magnifier, href: '/browse' },
         { id: 'proposals', label: 'My Proposals', icon: FileText, href: '/dashboard/freelancer/proposals' },
         { id: 'active', label: 'Active Work', icon: Briefcase, href: '/dashboard/freelancer/active' },
+        { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark, href: '/dashboard/freelancer/bookmarks' },
         { id: 'earnings', label: 'Earnings', icon: CreditCard, href: '/dashboard/freelancer/earnings' },
         { id: 'settings', label: 'Settings', icon: Gear, href: '/dashboard/freelancer/settings' },
     ],

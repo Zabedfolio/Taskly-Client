@@ -57,3 +57,18 @@ export const getAdminTransactions = async (token) => {
     if (!res.ok) throw new Error('Failed to fetch transaction history');
     return res.json();
 };
+
+export const verifyUser = async (userId, isVerified, token) => {
+    if (!token) throw new Error('Auth token required.');
+    const res = await fetch(`${BASE_URL}/api/users/${userId}/verify`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isVerified })
+    });
+    if (!res.ok) throw new Error('Failed to update verification status');
+    return res.json();
+};
+

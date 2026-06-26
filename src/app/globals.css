@@ -22,6 +22,33 @@
   --border: #3f3f46;
   --primary: #22c55e;
   --primary-foreground: #052e16;
+  --card-bg: rgba(255,255,255,0.015);
+  --card-border: rgba(255,255,255,0.06);
+  --text-muted: rgba(255,255,255,0.4);
+  --text-subtle: rgba(255,255,255,0.25);
+  --navbar-bg: linear-gradient(180deg, rgba(38,12,2,0.92) 0%, rgba(13,4,0,0.92) 100%);
+  --sidebar-bg: #0a0a0a;
+  --input-bg: rgba(255,255,255,0.04);
+  --input-border: rgba(255,255,255,0.09);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --background: #f8f7f5;
+  --foreground: #1a1a1a;
+  --surface: #ffffff;
+  --surface-muted: #f0ede9;
+  --border: #e2ddd8;
+  --primary: #16a34a;
+  --primary-foreground: #f0fdf4;
+  --card-bg: rgba(255,255,255,0.85);
+  --card-border: rgba(0,0,0,0.08);
+  --text-muted: rgba(0,0,0,0.45);
+  --text-subtle: rgba(0,0,0,0.3);
+  --navbar-bg: linear-gradient(180deg, rgba(255,250,245,0.95) 0%, rgba(248,245,240,0.95) 100%);
+  --sidebar-bg: #ffffff;
+  --input-bg: rgba(0,0,0,0.03);
+  --input-border: rgba(0,0,0,0.12);
 }
 
 * {

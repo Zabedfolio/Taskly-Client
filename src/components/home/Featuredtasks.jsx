@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import TaskCard from "./home-components/Taskcard";
 import { getAllTasks } from "@/lib/api/home/getAllTasks";
+import TaskDetailModal from "@/components/shared/TaskDetailModal";
+import { Toaster } from "react-hot-toast";
 
 const STATIC_TASKS = [
   {
@@ -80,7 +82,9 @@ const STATIC_TASKS = [
 //     clientAvatarText, category, budget (number), dueDate (ISO string) }
 
 export default function FeaturedTasks({ tasks }) {
-  const [dbTasks, setDbTasks] = useState([]);
+  const [dbTasks, setDbTasks]       = useState([]);  // display-shaped tasks for cards
+  const [rawTasks, setRawTasks]     = useState([]);  // original DB objects for the modal
+  const [activeTask, setActiveTask] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -121,6 +125,8 @@ export default function FeaturedTasks({ tasks }) {
 
             return {
               id: t._id,
+              // raw _id so the card can carry it for modal lookup
+              _id: t._id,
               title: t.title,
               clientName: t.clientName || "Client",
               clientInitials: getInitials(t.clientName),
@@ -131,6 +137,8 @@ export default function FeaturedTasks({ tasks }) {
               dueDate: t.deadline || new Date().toISOString()
             };
           });
+          const recent = data.slice().reverse().slice(0, 6);
+          setRawTasks(recent);
           setDbTasks(mapped.reverse().slice(0, 6));
         }
       } catch (err) {
@@ -142,8 +150,19 @@ export default function FeaturedTasks({ tasks }) {
 
   const displayTasks = tasks ?? (dbTasks.length > 0 ? dbTasks : STATIC_TASKS);
 
+  // When a card is clicked, find the matching raw DB task (or fall back to the display shape)
+  const handleCardClick = (cardTask) => {
+    const raw = rawTasks.find(t => t._id === cardTask._id || t._id === cardTask.id);
+    setActiveTask(raw || cardTask);
+  };
+
   return (
     <section className="relative w-full overflow-hidden py-24 bg-black">
+      <Toaster position="top-center" toastOptions={{
+        style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, borderRadius: 10 },
+        success: { iconTheme: { primary: '#22c55e', secondary: '#1a1a1a' } },
+        error:   { iconTheme: { primary: '#ff4d00', secondary: '#1a1a1a' } },
+      }} />
 
       {/* Ambient glow */}
       <div
@@ -239,7 +258,7 @@ export default function FeaturedTasks({ tasks }) {
         {/* Task grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {displayTasks.map((task, i) => (
-            <TaskCard key={task.id} task={task} index={i} />
+            <TaskCard key={task.id || task._id} task={task} index={i} onClick={() => handleCardClick(task)} />
           ))}
         </div>
 
@@ -247,6 +266,14 @@ export default function FeaturedTasks({ tasks }) {
 
       {/* Bottom fade */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent" />
+
+      {/* Task Detail Modal */}
+      {activeTask && (
+        <TaskDetailModal
+          task={activeTask}
+          onClose={() => setActiveTask(null)}
+        />
+      )}
     </section>
   );
 }
