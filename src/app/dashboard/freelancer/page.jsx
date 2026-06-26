@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
+import { getFreelancerStats } from '@/lib/api/freelancer/getFreelancerStats';
 import { Briefcase, Magnifier, FileText, CreditCard, Clock, ArrowRight, CircleDollar } from '@gravity-ui/icons';
 import Link from 'next/link';
 
 export default function FreelancerDashboardHomePage() {
     const { data: session, isPending: sessionPending } = useSession();
     const [proposals, setProposals] = useState([]);
+    const [completedJobs, setCompletedJobs] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -22,8 +24,13 @@ export default function FreelancerDashboardHomePage() {
         async function fetchDashboardMetrics() {
             try {
                 setLoading(true);
-                const data = await getMyProposals(session.session.token);
+                const token = session.session.token;
+                const [data, stats] = await Promise.all([
+                    getMyProposals(token),
+                    getFreelancerStats(token).catch(() => ({ completedJobs: 0 })),
+                ]);
                 setProposals(data || []);
+                setCompletedJobs(stats?.completedJobs ?? 0);
                 setError('');
             } catch (err) {
                 console.error("Error loading freelancer dashboard metrics:", err);
@@ -76,7 +83,7 @@ export default function FreelancerDashboardHomePage() {
     const stats = [
         { label: 'Total Proposals', value: `${totalSubmitted}`, desc: 'All submitted bids', icon: FileText, href: '/dashboard/freelancer/proposals', color: '#ff4d00', bg: 'rgba(255,77,0,0.06)' },
         { label: 'Pending Proposals', value: `${pendingCount}`, desc: 'Awaiting client response', icon: Clock, href: '/dashboard/freelancer/proposals', color: '#eab308', bg: 'rgba(234,179,8,0.06)' },
-        { label: 'Accepted Proposals', value: `${activeCount}`, desc: 'Active or completed projects', icon: Briefcase, href: '/dashboard/freelancer/active', color: '#06b6d4', bg: 'rgba(6,182,212,0.06)' },
+        { label: 'Completed Jobs', value: `${completedJobs}`, desc: 'Finished & delivered projects', icon: Briefcase, href: '/dashboard/freelancer/active', color: '#06b6d4', bg: 'rgba(6,182,212,0.06)' },
         { label: 'Total Earnings (USD)', value: `$${totalEarnings.toLocaleString()}`, desc: 'From accepted contracts', icon: CreditCard, href: '/dashboard/freelancer/active', color: '#10b981', bg: 'rgba(16,185,129,0.06)' },
     ];
 
