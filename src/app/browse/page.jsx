@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { getAllTasks } from '@/lib/api/home/getAllTasks';
 import toast, { Toaster } from 'react-hot-toast';
 import TaskDetailModal from '@/components/shared/TaskDetailModal';
+import ClientRatingBadge from '@/components/shared/ClientRatingBadge';
+import { useSession } from '@/lib/auth-client';
+import { useBookmarks } from '@/contexts/BookmarkContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -77,6 +80,9 @@ export default function BrowseTasksPage() {
     const [loading, setLoading]       = useState(true);
     const [error, setError]           = useState(null);
     const [activeTask, setActiveTask] = useState(null);
+    const { data: session } = useSession();
+    const { toggleBookmark, isBookmarked } = useBookmarks();
+    const user = session?.user;
 
     // Filters
     const [search, setSearch]         = useState('');
@@ -303,8 +309,37 @@ export default function BrowseTasksPage() {
                         {filtered.map(task => {
                             const theme = getTheme(task.category);
                             return (
-                                <div key={task._id} className="task-card" onClick={() => openTask(task)}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                                <div key={task._id} className="task-card" onClick={() => openTask(task)} style={{ position: 'relative' }}>
+                                    {user && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleBookmark(task._id);
+                                                toast(isBookmarked(task._id) ? '🔖 Bookmark removed' : '🔖 Task bookmarked!', {
+                                                    duration: 2000,
+                                                    style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,180,0,0.25)', fontSize: 12, borderRadius: 10 },
+                                                });
+                                            }}
+                                            title={isBookmarked(task._id) ? 'Remove bookmark' : 'Bookmark this task'}
+                                            style={{
+                                                position: 'absolute', top: 12, right: 12, zIndex: 2,
+                                                width: 28, height: 28, borderRadius: 8,
+                                                border: isBookmarked(task._id) ? '1px solid rgba(255,160,0,0.45)' : '1px solid rgba(255,255,255,0.08)',
+                                                background: isBookmarked(task._id) ? 'rgba(255,160,0,0.12)' : 'rgba(255,255,255,0.03)',
+                                                color: isBookmarked(task._id) ? '#ffb300' : 'rgba(255,255,255,0.4)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24"
+                                                fill={isBookmarked(task._id) ? 'currentColor' : 'none'}
+                                                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingRight: user ? 32 : 0 }}>
                                         <span style={{ fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace', color: theme.textColor, background: theme.bg, border: `1px solid ${theme.border}`, padding: '3px 8px', borderRadius: 6 }}>
                                             {theme.icon} {task.category}
                                         </span>
@@ -320,9 +355,15 @@ export default function BrowseTasksPage() {
                                     <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, margin: '0 0 16px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                                         {task.description}
                                     </p>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                                         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', textTransform: 'uppercase' }}>Client:</span>
                                         <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{task.clientName || 'Verified Client'}</span>
+                                        <ClientRatingBadge
+                                            clientId={task.clientId}
+                                            clientEmail={task.clientEmail}
+                                            clientName={task.clientName}
+                                            size="sm"
+                                        />
                                     </div>
                                     <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: 'auto 0 14px 0' }} />
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

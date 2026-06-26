@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import StarRating from './StarRating';
+import { rateClient } from '@/lib/api/freelancer/rateClient';
 import toast from 'react-hot-toast';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 /**
  * Modal for a freelancer to rate a client after task completion.
@@ -37,47 +36,18 @@ export default function RatingModal({ open, onClose, task, proposalId, token, on
         setSubmitting(true);
         const tId = toast.loading('Submitting your review…');
         try {
-            // Try backend; fall back to localStorage if endpoint doesn't exist yet
-            let saved = false;
-            try {
-                const res = await fetch(`${BASE_URL}/api/ratings`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                    },
-                    body: JSON.stringify({
-                        proposalId,
-                        taskId: task._id,
-                        clientId: task.clientId || task.clientEmail,
-                        stars,
-                        review: review.trim(),
-                    }),
-                });
-                if (res.ok) saved = true;
-            } catch (_) {}
-
-            if (!saved) {
-                // localStorage fallback
-                try {
-                    const key = 'taskly-ratings';
-                    const existing = JSON.parse(localStorage.getItem(key) || '[]');
-                    existing.push({
-                        proposalId,
-                        taskId: task._id,
-                        taskTitle: task.title,
-                        clientName: task.clientName,
-                        stars,
-                        review: review.trim(),
-                        createdAt: new Date().toISOString(),
-                    });
-                    localStorage.setItem(key, JSON.stringify(existing));
-                    saved = true;
-                } catch (_) {}
-            }
+            await rateClient({
+                proposalId,
+                taskId: task._id,
+                clientId: task.clientId || task.clientEmail,
+                clientName: task.clientName,
+                stars,
+                review,
+                token,
+            });
 
             toast.success('⭐ Review submitted successfully!', { id: tId });
-            onSubmitted?.({ proposalId, stars, review });
+            onSubmitted?.({ proposalId, stars, review: review.trim() });
             onClose();
         } catch (err) {
             toast.error(err.message || 'Failed to submit review.', { id: tId });

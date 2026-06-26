@@ -4,9 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
 import { updateTask } from '@/lib/api/client/updateTask';
-import { Briefcase, Calendar, Clock, ArrowLeft, CircleDollar, FileText, Check } from '@gravity-ui/icons';
+import { Briefcase, Clock, ArrowLeft, Check } from '@gravity-ui/icons';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
+import RatingModal from '@/components/shared/RatingModal';
+import StarRating from '@/components/shared/StarRating';
+import { getRatingsMapByProposalId } from '@/lib/clientRatings';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -21,6 +24,12 @@ export default function ActiveProjectsPage() {
     const [selectedTask, setSelectedTask] = useState(null);
     const [deliverableUrl, setDeliverableUrl] = useState('');
     const [submittingDeliverable, setSubmittingDeliverable] = useState(false);
+    const [ratingTask, setRatingTask] = useState(null);
+    const [ratingsByProposal, setRatingsByProposal] = useState({});
+
+    useEffect(() => {
+        setRatingsByProposal(getRatingsMapByProposalId());
+    }, []);
 
     const fetchGigs = async () => {
         if (!session?.session?.token) {
@@ -362,7 +371,7 @@ export default function ActiveProjectsPage() {
                                             </div>
                                         </div>
 
-                                        <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', marginBottom: 14 }}>
                                             <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', textTransform: 'uppercase' }}>Deliverable URL</span>
                                             <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <a href={task.deliverable_url} target="_blank" rel="noopener noreferrer" style={{
@@ -380,6 +389,41 @@ export default function ActiveProjectsPage() {
                                                 </a>
                                             </div>
                                         </div>
+
+                                        {ratingsByProposal[task.proposalId] ? (
+                                            <div style={{
+                                                padding: '12px 14px', borderRadius: 10,
+                                                background: 'rgba(255,128,64,0.06)', border: '1px solid rgba(255,128,64,0.18)',
+                                            }}>
+                                                <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', textTransform: 'uppercase' }}>
+                                                    Your Client Rating
+                                                </span>
+                                                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <StarRating value={ratingsByProposal[task.proposalId].stars} readOnly size="sm" />
+                                                    {ratingsByProposal[task.proposalId].review && (
+                                                        <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
+                                                            &ldquo;{ratingsByProposal[task.proposalId].review}&rdquo;
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => setRatingTask(task)}
+                                                style={{
+                                                    width: '100%', padding: '11px', borderRadius: 10,
+                                                    border: '1px solid rgba(255,128,64,0.35)',
+                                                    background: 'rgba(255,128,64,0.08)',
+                                                    color: '#ff8040', fontSize: 13, fontWeight: 700,
+                                                    cursor: 'pointer', transition: 'all 0.18s',
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,128,64,0.14)'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,128,64,0.08)'; }}
+                                            >
+                                                ⭐ Rate Client
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -499,6 +543,20 @@ export default function ActiveProjectsPage() {
                     </div>
                 </div>
             )}
+
+            <RatingModal
+                open={!!ratingTask}
+                onClose={() => setRatingTask(null)}
+                task={ratingTask}
+                proposalId={ratingTask?.proposalId}
+                token={session?.session?.token}
+                onSubmitted={({ proposalId, stars, review }) => {
+                    setRatingsByProposal(prev => ({
+                        ...prev,
+                        [proposalId]: { stars, review },
+                    }));
+                }}
+            />
 
             <style>{`
                 @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }

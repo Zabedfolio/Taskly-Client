@@ -129,6 +129,8 @@ export default function FeaturedTasks({ tasks }) {
               _id: t._id,
               title: t.title,
               clientName: t.clientName || "Client",
+              clientId: t.clientId,
+              clientEmail: t.clientEmail,
               clientInitials: getInitials(t.clientName),
               clientAvatarGradient: getGradient(t.clientName),
               clientAvatarText: "#ffffff",

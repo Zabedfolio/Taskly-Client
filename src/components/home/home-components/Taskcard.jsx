@@ -1,6 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import ClientRatingBadge from "@/components/shared/ClientRatingBadge";
+import { useSession } from "@/lib/auth-client";
+import { useBookmarks } from "@/contexts/BookmarkContext";
+import toast from "react-hot-toast";
 
 const CATEGORY_STYLES = {
   "UI Design":   { textColor: "#ff9a50", bg: "#ff640020", border: "#ff640038", icon: "🎨" },
@@ -21,9 +25,14 @@ function formatDate(dueDateStr) {
   return new Date(dueDateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function TaskCard({ task, index = 0 }) {
+export default function TaskCard({ task, index = 0, onClick }) {
   const cat     = CATEGORY_STYLES[task.category] ?? CATEGORY_STYLES["Development"];
   const dlColor = getDeadlineColor(task.dueDate);
+  const { data: session } = useSession();
+  const { toggleBookmark, isBookmarked } = useBookmarks();
+  const user = session?.user;
+  const taskId = task._id || task.id;
+  const bookmarked = taskId ? isBookmarked(taskId) : false;
 
   return (
     <motion.article
@@ -33,6 +42,7 @@ export default function TaskCard({ task, index = 0 }) {
       transition={{ duration: 0.55, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -5, boxShadow: "0 20px 60px rgba(255,77,0,0.13), 0 0 0 1px rgba(255,77,0,0.20)" }}
       className="relative rounded-2xl overflow-hidden cursor-pointer flex flex-col"
+      onClick={onClick}
       style={{
         background: "#0f0604",
         border: "1px solid rgba(255,255,255,0.07)",
@@ -48,6 +58,35 @@ export default function TaskCard({ task, index = 0 }) {
       />
 
       <div className="flex flex-col flex-1 p-[22px] gap-0">
+
+        {/* Bookmark */}
+        {user && taskId && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleBookmark(taskId);
+              toast(bookmarked ? "🔖 Bookmark removed" : "🔖 Task bookmarked!", {
+                duration: 2000,
+                style: { background: "#1a1a1a", color: "#fff", border: "1px solid rgba(255,180,0,0.25)", fontSize: 12, borderRadius: 10 },
+              });
+            }}
+            title={bookmarked ? "Remove bookmark" : "Bookmark this task"}
+            className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-lg"
+            style={{
+              border: bookmarked ? "1px solid rgba(255,160,0,0.45)" : "1px solid rgba(255,255,255,0.08)",
+              background: bookmarked ? "rgba(255,160,0,0.12)" : "rgba(255,255,255,0.03)",
+              color: bookmarked ? "#ffb300" : "rgba(255,255,255,0.4)",
+              cursor: "pointer",
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24"
+              fill={bookmarked ? "currentColor" : "none"}
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+            </svg>
+          </button>
+        )}
 
         {/* Category pill */}
         <div className="mb-[14px]">
@@ -92,6 +131,14 @@ export default function TaskCard({ task, index = 0 }) {
           <div>
             <div className="text-[10px] font-medium leading-none mb-[3px] text-white/35">Posted by</div>
             <div className="text-[12px] font-semibold text-white/72">{task.clientName}</div>
+            <div className="mt-1">
+              <ClientRatingBadge
+                clientId={task.clientId}
+                clientEmail={task.clientEmail}
+                clientName={task.clientName}
+                size="sm"
+              />
+            </div>
           </div>
         </div>
 

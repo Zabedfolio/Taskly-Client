@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getAllFreelancers } from '@/lib/api/home/getAllFreelancer';
+import VerifiedBadge from '@/components/shared/VerifiedBadge';
 
 // ─── Skill tag palette ──────────────────────────────────────────────────────
 const SKILL_PALETTE = [
@@ -51,23 +52,7 @@ function StarRating({ rating }) {
 }
 
 // ─── Verified Badge ─────────────────────────────────────────────────────────
-function VerifiedBadge() {
-    return (
-        <span title="Email Verified" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 3,
-            fontSize: 9, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace",
-            letterSpacing: '0.08em', color: '#22c55e',
-            background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)',
-            padding: '2px 6px', borderRadius: 5,
-        }}>
-            <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-                <circle cx="5" cy="5" r="4.5" stroke="#22c55e" strokeWidth="1" />
-                <path d="M3 5l1.3 1.4L7 3.5" stroke="#22c55e" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Verified
-        </span>
-    );
-}
+// Uses shared VerifiedBadge component from @/components/shared/VerifiedBadge
 
 // ─── FreelancerCard ─────────────────────────────────────────────────────────
 function FreelancerCard({ freelancer, index }) {
@@ -77,7 +62,7 @@ function FreelancerCard({ freelancer, index }) {
     const skills     = freelancer.skills      ?? [];
     const rating     = freelancer.rating      ?? 0;
     const jobsDone   = freelancer.completedJobs ?? freelancer.jobsDone ?? 0;
-    const isVerified = freelancer.emailVerified === true;
+    const isVerified = freelancer.isVerified === true || freelancer.emailVerified === true;
 
     return (
         <motion.article
@@ -109,7 +94,7 @@ function FreelancerCard({ freelancer, index }) {
                             <div style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)', lineHeight: 1.2 }}>
                                 {name}
                             </div>
-                            {isVerified && <VerifiedBadge />}
+                            {isVerified && <VerifiedBadge size="sm" />}
                         </div>
                         {title && (
                             <div style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.38)', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
