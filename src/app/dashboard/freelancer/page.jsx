@@ -77,7 +77,6 @@ export default function FreelancerDashboardHomePage() {
     const totalSubmitted = proposals.length;
     const pendingCount = proposals.filter(p => p.status?.toLowerCase() === 'pending').length;
     const acceptedProposals = proposals.filter(p => p.status?.toLowerCase() === 'accepted');
-    const activeCount = acceptedProposals.length;
     const totalEarnings = acceptedProposals.reduce((sum, p) => sum + (p.proposedBudget || 0), 0);
 
     const stats = [
