@@ -216,7 +216,7 @@ export default function BrowseTasksPage() {
         })
         .sort((a, b) => {
             if (sort === 'budget-high') {
-                return Number(b.budget) - Number(a.budget);
+                return Number(b.budget) - Number(a.budget)
             }
             if (sort === 'budget-low') {
                 return Number(a.budget) - Number(b.budget);
