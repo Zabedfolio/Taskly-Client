@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+const  BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const getAdminStats = async (token) => {
     if (!token) throw new Error('Auth token required.');
@@ -9,31 +9,34 @@ export const getAdminStats = async (token) => {
     return res.json();
 };
 
-export const getAllUsers = async (token) => {
+
+export const  getAllUsers = async (token) => {
     if (!token) throw new Error('Auth token required.');
-    const res = await fetch(`${BASE_URL}/api/users`, {
+    const  res = await fetch(`${BASE_URL}/api/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Failed to fetch users');
-    return res.json();
+    return   res.json();
 };
 
 export const blockUser = async (userId, isBlocked, token) => {
     if (!token) throw new Error('Auth token required.');
-    const res = await fetch(`${BASE_URL}/api/users/${userId}/block`, {
+    const  res = await fetch(`${BASE_URL}/api/users/${userId}/block`, {
         method: 'PATCH',
         headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+
+              'Content-Type': 'application/json',
+               'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ isBlocked })
+
     });
     if (!res.ok) throw new Error('Failed to update user block status');
     return res.json();
 };
 
 export const getAllTasks = async () => {
-    // get tasks is public for browsing, but we call it from admin console
+    
     const res = await fetch(`${BASE_URL}/api/tasks`);
     if (!res.ok) throw new Error('Failed to fetch tasks');
     return res.json();
@@ -42,16 +45,17 @@ export const getAllTasks = async () => {
 export const deleteTask = async (taskId, token) => {
     if (!token) throw new Error('Auth token required.');
     const res = await fetch(`${BASE_URL}/api/tasks/${taskId}`, {
-        method: 'DELETE',
+         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok) throw new Error('Failed to delete task');
+     if (!res.ok) throw new Error('Failed to delete task');
     return res.json();
 };
 
 export const getAdminTransactions = async (token) => {
-    if (!token) throw new Error('Auth token required.');
-    const res = await fetch(`${BASE_URL}/api/admin/transactions`, {
+
+      if (!token) throw new Error('Auth token required.');
+    const  res = await fetch(`${BASE_URL}/api/admin/transactions`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Failed to fetch transaction history');
@@ -66,8 +70,9 @@ export const verifyUser = async (userId, isVerified, token) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ isVerified })
+         body: JSON.stringify({ isVerified })
     });
+
     if (!res.ok) throw new Error('Failed to update verification status');
     return res.json();
 };

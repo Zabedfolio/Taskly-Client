@@ -1,4 +1,4 @@
-const base_url = process.env.NEXT_PUBLIC_BASE_URL;
+const  base_url = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const createTask = async (taskData) => {
   const res = await fetch(`${base_url}/api/tasks`, {
@@ -7,7 +7,7 @@ export const createTask = async (taskData) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(taskData),
-  });
+   });
 
   return res.json();
 };

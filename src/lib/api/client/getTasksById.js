@@ -16,8 +16,8 @@ export const getTasksById = async (clientId) => {
   const clientTasks = tasksList.filter(t => t.clientId === clientId);
 
   return clientTasks.map(t => {
-    const count = proposalsList.filter(p => p.taskId === t._id).length;
-    const acceptedProp = proposalsList.find(p => p.taskId === t._id && p.status?.toLowerCase() === 'accepted');
+     const count = proposalsList.filter(p => p.taskId === t._id).length;
+     const acceptedProp = proposalsList.find(p => p.taskId === t._id && p.status?.toLowerCase() === 'accepted');
 
     let freelancerEmail = null;
     let freelancerName = null;
@@ -31,6 +31,7 @@ export const getTasksById = async (clientId) => {
         freelancerImage = fUser.image || null;
       }
     }
+
 
     return {
       ...t,

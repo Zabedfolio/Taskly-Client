@@ -2,7 +2,8 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import React from 'react';
 
 const AdminDashboardLayout = ({ children }) => {
-    return (
+    return   (
+
         <DashboardSidebar>
             {children}
         </DashboardSidebar>

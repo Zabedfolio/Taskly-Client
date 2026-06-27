@@ -1,3 +1,4 @@
+
 import { betterAuth } from "better-auth";
 import { MongoClient, ObjectId } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
@@ -13,28 +14,32 @@ export const auth = betterAuth({
   },
 
   emailAndPassword: {
-    enabled: true,
+      enabled: true,
   },
 
   socialProviders: {
-    google: {
+      google: {
+
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
   },
 
   user: {
+
     additionalFields: {
       role: {
         type: "string",
-        required: false,
-        returned: true,
+          required: false,
+          returned: true,
+
         input: true,
         defaultValue: "client",
       },
-      onboardingComplete: {
+         onboardingComplete: {
         type: "boolean",
         required: false,
+
         returned: true,
         input: true,
         defaultValue: false,
@@ -42,25 +47,31 @@ export const auth = betterAuth({
       isBlocked: {
         type: "boolean",
         required: false,
-        returned: true,
+           returned: true,
+
         input: false,
         defaultValue: false,
       },
+
       skills: {
         type: "string",
+
         required: false,
         returned: true,
         input: true,
       },
       bio: {
+
         type: "string",
         required: false,
         returned: true,
+
         input: true,
       },
       hourlyRate: {
         type: "number",
         required: false,
+
         returned: true,
         input: true,
       },
@@ -73,7 +84,8 @@ export const auth = betterAuth({
         before: async (user) => {
           if (!user.role) {
             user.role = "client";
-          }
+            }
+
           if (user.onboardingComplete === undefined || user.onboardingComplete === null || user.onboardingComplete === false) {
             user.onboardingComplete = true;
           }
@@ -87,36 +99,38 @@ export const auth = betterAuth({
           const userId = session.userId;
           if (userId) {
             let user = null;
+
             try {
               user = await db.collection("user").findOne({
                 _id: new ObjectId(userId),
               });
             } catch {
               user = await db.collection("user").findOne({ _id: userId });
+
             }
             if (user?.isBlocked) {
               throw new Error("Your account has been blocked.");
             }
 
-            // Check if user logged in via google
+            
             let googleAccount = null;
             try {
               googleAccount = await db.collection("account").findOne({
                 $or: [
                   { userId: userId, providerId: "google" },
                   { userId: new ObjectId(userId), providerId: "google" }
-                ]
+                  ]
               });
             } catch {
               try {
                 googleAccount = await db.collection("account").findOne({
-                  userId: userId,
+                    userId: userId,
                   providerId: "google"
                 });
               } catch (e) {
-                // ignore
+                
               }
-            }
+               }
 
             if (googleAccount && user) {
               const updateDoc = {};
@@ -138,11 +152,12 @@ export const auth = betterAuth({
                     { _id: userId },
                     { $set: updateDoc }
                   );
-                }
+                   }
               }
+
             }
           }
-          return { data: session };
+          return   { data: session };
         },
       },
     },

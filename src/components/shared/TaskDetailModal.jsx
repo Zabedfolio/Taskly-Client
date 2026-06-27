@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
+
 import { submitProposal } from '@/lib/api/client/submitProposal';
+
 import { getMyProposals } from '@/lib/api/freelancer/getMyProposals';
 import toast from 'react-hot-toast';
 import { useBookmarks } from '@/contexts/BookmarkContext';
@@ -17,10 +19,12 @@ const CATEGORY_ICON_MAP = {
     smartphone:   Smartphone,
     palette:      Palette,
     paintbrush:   Paintbrush,
-    pencilToLine: PencilToLine,
+      pencilToLine: PencilToLine,
     video:        Video,
+
     megaphone:    Megaphone,
     magnifier:    Magnifier,
+
     comment:      Comment,
     chartBar:     ChartBar,
     bulb:         Bulb,
@@ -32,15 +36,16 @@ function CategoryIcon({ iconKey, color, size = 10 }) {
     return <Icon width={size} height={size} style={{ color, flexShrink: 0 }} />;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 const fmt   = (n) => `$${Number(n).toLocaleString()}`;
 const fmtDt = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 const daysLeft = (iso) => {
-    const d = Math.ceil((new Date(iso) - new Date()) / 864e5);
-    return d > 0 ? `${d}d left` : 'Expired';
+    const  d = Math.ceil((new Date(iso) - new Date()) / 864e5);
+      return   d > 0 ? `${d}d left` : 'Expired';
 };
 
-const CATEGORY_THEMES = {
+const  CATEGORY_THEMES = {
+
     'Web Development':       { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'thunderbolt'  },
     'Mobile Development':    { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'smartphone'   },
     'UI / UX Design':        { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   iconKey: 'palette'      },
@@ -52,10 +57,10 @@ const CATEGORY_THEMES = {
     'Customer Support':      { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'comment'     },
     'Accounting & Finance':  { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'chartBar'    },
     'Other':                 { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'bulb'        },
-    // Mapped aliases
+    
     'UI Design':             { textColor: '#ff9a50', bg: 'rgba(255,100,0,0.08)',   border: 'rgba(255,100,0,0.22)',   iconKey: 'palette'     },
-    'Development':           { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'thunderbolt' },
-    'Copywriting':           { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', iconKey: 'pencilToLine' },
+     'Development':           { textColor: '#50d4ff', bg: 'rgba(0,170,255,0.08)',   border: 'rgba(0,170,255,0.22)',   iconKey: 'thunderbolt' },
+       'Copywriting':           { textColor: '#a78bfa', bg: 'rgba(120,80,255,0.08)', border: 'rgba(120,80,255,0.22)', iconKey: 'pencilToLine' },
     'Marketing':             { textColor: '#34d399', bg: 'rgba(0,200,120,0.08)',  border: 'rgba(0,200,120,0.22)',  iconKey: 'megaphone'   },
     'Video':                 { textColor: '#fb7185', bg: 'rgba(240,50,80,0.08)',  border: 'rgba(240,50,80,0.22)',  iconKey: 'video'       },
 };
@@ -64,9 +69,9 @@ function getTheme(cat) {
     return CATEGORY_THEMES[cat] || { textColor: '#e2e8f0', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', iconKey: 'briefcase' };
 }
 
-// ─── Inline label component ───────────────────────────────────────────────────
+
 function Field({ label, icon, children, hint }) {
-    return (
+    return   (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{
                 display: 'flex', alignItems: 'center', gap: 5,
@@ -82,15 +87,8 @@ function Field({ label, icon, children, hint }) {
     );
 }
 
-// ─── Main Modal Component ─────────────────────────────────────────────────────
-/**
- * TaskDetailModal — shared modal for browsing task details and submitting proposals.
- *
- * Props:
- *   task        — the task object (must have _id, title, category, budget, deadline, description, clientName, proposals)
- *   onClose     — called when the modal is dismissed
- *   onProposalSubmit — optional callback after a successful submission (receives updated task)
- */
+
+
 export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
     const { data: session } = useSession();
     const user = session?.user;
@@ -98,39 +96,43 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
     const [selectedFreelancerEmail, setSelectedFreelancerEmail] = useState(null);
 
     const [submitting, setSubmitting] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
+      const [submitted, setSubmitted] = useState(false);
     const [alreadyApplied, setAlreadyApplied] = useState(false);
     const [checkingProposals, setCheckingProposals] = useState(false);
+
     const formRef = useRef(null);
 
-    // ── Check if this freelancer already applied ──────────────────────────────
+    
     useEffect(() => {
         if (!user?.email || user?.role !== 'freelancer' || !task?._id) return;
         setCheckingProposals(true);
-        getMyProposals(user.email)
+           getMyProposals(user.email)
             .then(proposals => {
                 const applied = (proposals || []).some(p => p.taskId === task._id);
                 setAlreadyApplied(applied);
             })
+
             .catch(() => {})
-            .finally(() => setCheckingProposals(false));
+              .finally(() => setCheckingProposals(false));
     }, [user, task?._id]);
 
-    // ── Close on Escape ───────────────────────────────────────────────────────
-    useEffect(() => {
+    
+      useEffect(() => {
+
         const handler = (e) => { if (e.key === 'Escape') onClose(); };
         window.addEventListener('keydown', handler);
+
         return () => window.removeEventListener('keydown', handler);
     }, [onClose]);
 
-    // ── Submit proposal ───────────────────────────────────────────────────────
+    
     const handleProposalSubmit = async (e) => {
         e.preventDefault();
         if (!user) { toast.error('You must be logged in to apply.'); return; }
 
-        const fd = new FormData(formRef.current);
+        const  fd = new FormData(formRef.current);
         const budget = Number(fd.get('proposedBudget'));
-        const days   = Number(fd.get('estimatedDays'));
+        const  days   = Number(fd.get('estimatedDays'));
         const note   = (fd.get('coverNote') || '').trim();
 
         if (budget <= 0)      { toast.error('Enter a valid budget.'); return; }
@@ -142,27 +144,29 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
             await submitProposal(fd, { userId: user.id, taskTitle: task.title });
             setSubmitted(true);
             setAlreadyApplied(true);
+
             toast.success('🎉 Proposal submitted!');
             if (onProposalSubmit) onProposalSubmit(task._id);
         } catch (err) {
             toast.error(err.message || 'Submission failed. Try again.');
         } finally {
             setSubmitting(false);
-        }
+         }
     };
 
     if (!task) return null;
 
     const theme = getTheme(task.category);
-    // Support both deadline (browse) and dueDate (home card) field names
+    
     const deadline = task.deadline || task.dueDate;
+
 
     return (
         <>
             <style>{`
                 @keyframes scaleIn { from { opacity:0; transform:scale(0.96); } to { opacity:1; transform:scale(1); } }
                 @keyframes fadeUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-                @keyframes spin    { to { transform: rotate(360deg); } }
+                   @keyframes spin    { to { transform: rotate(360deg); } }
                 .tdm-form-input {
                     padding: 10px 13px; border-radius: 10px;
                     border: 1px solid rgba(255,255,255,0.09);
@@ -176,57 +180,63 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                 .tdm-submit-btn {
                     width: 100%; padding: 12px; border-radius: 11px; border: none;
                     background: linear-gradient(135deg,#ff4d00,#cc3d00);
-                    color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+                       color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+
                     display: flex; align-items: center; justify-content: center; gap: 8px;
                     box-shadow: 0 4px 20px rgba(255,77,0,0.25); transition: opacity 0.2s, transform 0.15s;
                 }
                 .tdm-submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(255,77,0,0.35); }
                 .tdm-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
                 @media(max-width:900px) {
-                    .tdm-inner { flex-direction: column !important; }
+                       .tdm-inner { flex-direction: column !important; }
                     .tdm-right { border-left: none !important; border-top: 1px solid rgba(255,255,255,0.07) !important; width: auto !important; }
                 }
-            `}</style>
+              `}</style>
 
-            {/* Backdrop */}
+            
             <div
                 onClick={onClose}
                 style={{
                     position: 'fixed', inset: 0, zIndex: 300,
+
                     background: 'rgba(0,0,0,0.82)',
                     backdropFilter: 'blur(6px)',
+
                     WebkitBackdropFilter: 'blur(6px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: '16px',
                     overflowY: 'auto',
                 }}
-            >
-                {/* Modal box */}
+             >
+                
                 <div
                     onClick={e => e.stopPropagation()}
                     className="tdm-inner"
                     style={{
-                        display: 'flex', flexDirection: 'row',
+                         display: 'flex', flexDirection: 'row',
+
                         width: '100%', maxWidth: 920,
+
                         background: '#0f0f0f',
                         border: '1px solid rgba(255,255,255,0.09)',
                         borderRadius: 22,
                         boxShadow: '0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,77,0,0.08)',
                         overflow: 'hidden',
                         animation: 'scaleIn 0.22s ease',
-                        maxHeight: '92vh',
+                           maxHeight: '92vh',
                     }}
                 >
-                    {/* ── LEFT: Task Details ── */}
+                    
                     <div style={{
                         flex: 1, minWidth: 0,
-                        padding: '32px 28px',
+                          padding: '32px 28px',
                         overflowY: 'auto',
                         borderRight: '1px solid rgba(255,255,255,0.07)',
-                        display: 'flex', flexDirection: 'column', gap: 0,
+                          display: 'flex', flexDirection: 'column', gap: 0,
                     }}>
-                        {/* Category + proposal count row */}
+                        
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+
                             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
                                 <span style={{
                                     fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',
@@ -240,25 +250,26 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                 <span style={{
                                     fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',
                                     color: 'rgba(255,255,255,0.28)', background: 'rgba(255,255,255,0.03)',
+
                                     border: '1px solid rgba(255,255,255,0.07)', padding: '3px 9px', borderRadius: 6,
                                 }}>
                                     {task.proposals ?? 0} PROPOSALS
-                                </span>
+                                 </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                {/* Bookmark button */}
-                                {user && (
+                                
+                                 {user && (
                                     <button
                                         id={`bookmark-btn-${task._id}`}
                                         type="button"
                                         onClick={() => {
                                             toggleBookmark(task._id);
-                                            toast(isBookmarked(task._id) ? '🔖 Bookmark removed' : '🔖 Task bookmarked!', {
+                                             toast(isBookmarked(task._id) ? '🔖 Bookmark removed' : '🔖 Task bookmarked!', {
                                                 duration: 2000,
                                                 style: { background: '#1a1a1a', color: '#fff', border: '1px solid rgba(255,180,0,0.25)', fontSize: 12, borderRadius: 10 }
-                                            });
+                                              });
                                         }}
-                                        title={isBookmarked(task._id) ? 'Remove bookmark' : 'Bookmark this task'}
+                                          title={isBookmarked(task._id) ? 'Remove bookmark' : 'Bookmark this task'}
                                         style={{
                                             width: 30, height: 30, borderRadius: 8, flexShrink: 0,
                                             border: isBookmarked(task._id)
@@ -280,13 +291,15 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                     </button>
                                 )}
 
-                                {/* Close button */}
+                                
+
                                 <button onClick={onClose} style={{
                                     width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                     border: '1px solid rgba(255,255,255,0.08)',
                                     background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.4)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     cursor: 'pointer', transition: 'all 0.15s',
+
                                 }}
                                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'; e.currentTarget.style.color = '#fff'; }}
                                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
@@ -296,16 +309,18 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                             </div>
                         </div>
 
-                        {/* Title */}
+                        
                         <h2 style={{ fontSize: 'clamp(1.1rem,2.5vw,1.55rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.025em', lineHeight: 1.25, margin: '0 0 22px' }}>
                             {task.title}
                         </h2>
 
-                        {/* Stats grid */}
+                        
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 22 }}>
                             {[
                                 { label: 'Client Budget', value: fmt(task.budget), color: '#ff4d00', mono: true },
+
                                 { label: 'Deadline',      value: deadline ? fmtDt(deadline) : '—', color: '#fff' },
+
                                 { label: 'Time Left',     value: deadline ? daysLeft(deadline) : '—', color: 'rgba(255,255,255,0.7)' },
                                 { label: 'Posted By',     value: task.clientName || 'Verified Client', color: 'rgba(255,255,255,0.7)' },
                             ].map(({ label, value, color, mono }) => (
@@ -316,9 +331,11 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                             ))}
                         </div>
 
-                        {/* Description */}
+                        
                         <div style={{ marginBottom: 10 }}>
+
                             <div style={{ fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
+
                                 Task Brief
                             </div>
                             <div style={{
@@ -332,26 +349,29 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                         </div>
                     </div>
 
-                    {/* ── RIGHT: Proposal Form ── */}
+                    
+
                     <div
-                        className="tdm-right"
+
+                           className="tdm-right"
                         style={{
                             width: 360, flexShrink: 0,
                             padding: '32px 26px',
                             overflowY: 'auto',
                             display: 'flex', flexDirection: 'column',
+
                             background: 'rgba(255,77,0,0.012)',
                         }}
                     >
                         {task.status?.toLowerCase() !== 'open' ? (
-                            /* ── Hired Freelancer Banner ── */
+                            
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 16, animation: 'fadeUp 0.4s ease' }}>
                                 <div style={{
                                     fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace',
                                     color: '#ff4d00', background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.22)',
                                     padding: '3px 9px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '0.1em'
                                 }}>
-                                    🔒 Position Filled
+                                      🔒 Position Filled
                                 </div>
                                 {task.freelancerEmail ? (
                                     <div 
@@ -373,7 +393,7 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                             e.currentTarget.style.background = 'rgba(255,77,0,0.02)';
                                             e.currentTarget.style.borderColor = 'rgba(255,77,0,0.2)';
                                             e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,77,0,0.05)';
-                                        }}
+                                         }}
                                         onMouseLeave={e => {
                                             e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
                                             e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
@@ -382,16 +402,16 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                     >
                                         <div style={{ position: 'relative' }}>
                                             {task.freelancerImage ? (
-                                                <img 
+                                                   <img 
                                                     src={task.freelancerImage} 
                                                     alt={task.freelancerName || 'Hired Freelancer'}
                                                     style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff4d00' }}
                                                 />
-                                            ) : (
+                                             ) : (
                                                 <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #ff4d00, #b33600)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #ff4d00', color: '#fff', fontSize: 24, fontWeight: 700 }}>
                                                     {(task.freelancerName || 'F').charAt(0).toUpperCase()}
                                                 </div>
-                                            )}
+                                              )}
                                             <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#ff4d00', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: '2px solid #0f0f0f' }}>
                                                 ✓
                                             </span>
@@ -410,9 +430,9 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                             gap: 4 
                                         }}>
                                             View Profile & Reviews 
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="M5 12h14M12 5l7 7-7 7" />
-                                            </svg>
+                                              </svg>
                                         </div>
                                     </div>
                                 ) : (
@@ -422,14 +442,15 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                 )}
                             </div>
                         ) : submitted ? (
-                            /* ── Success ── */
+                            
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 16, animation: 'fadeUp 0.4s ease' }}>
-                                <div style={{
+                                   <div style={{
                                     width: 64, height: 64, borderRadius: '50%',
-                                    background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.4)',
+                                     background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.4)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}>
                                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+
                                         <path d="M5 13l4 4L19 7" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </div>
@@ -440,17 +461,20 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                     </p>
                                 </div>
                                 <button onClick={onClose} style={{
+
                                     padding: '10px 22px', borderRadius: 10,
-                                    border: '1px solid rgba(255,255,255,0.12)',
+                                       border: '1px solid rgba(255,255,255,0.12)',
+
                                     background: 'rgba(255,255,255,0.05)', color: '#fff',
+
                                     fontSize: 13, fontWeight: 600, cursor: 'pointer',
                                 }}>
                                     Close
                                 </button>
                             </div>
 
-                        ) : !user ? (
-                            /* ── Not logged in ── */
+                           ) : !user ? (
+                            
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
                                 <div style={{
                                     width: 56, height: 56, borderRadius: '50%',
@@ -460,10 +484,11 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                                         <rect x="5" y="11" width="14" height="11" rx="2" stroke="#ff4d00" strokeWidth="1.8" />
                                         <path d="M8 11V7a4 4 0 018 0v4" stroke="#ff4d00" strokeWidth="1.8" strokeLinecap="round" />
-                                    </svg>
+                                       </svg>
                                 </div>
                                 <div>
                                     <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Login to Apply</h3>
+
                                     <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)', margin: '0 0 18px', lineHeight: 1.55 }}>
                                         Sign in with your freelancer account to submit a proposal.
                                     </p>
@@ -472,7 +497,8 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                     display: 'block', width: '100%', padding: '11px', borderRadius: 11,
                                     background: 'linear-gradient(135deg,#ff4d00,#cc3d00)',
                                     color: '#fff', fontSize: 14, fontWeight: 700,
-                                    textDecoration: 'none', textAlign: 'center',
+                                      textDecoration: 'none', textAlign: 'center',
+
                                     boxShadow: '0 4px 18px rgba(255,77,0,0.28)',
                                 }}>
                                     Sign In
@@ -480,8 +506,9 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                             </div>
 
                         ) : user.role !== 'freelancer' ? (
-                            /* ── Non-freelancer ── */
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
+                            
+
+                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
                                 <div style={{
                                     width: 56, height: 56, borderRadius: '50%',
                                     background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.25)',
@@ -501,13 +528,14 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                             </div>
 
                         ) : checkingProposals ? (
-                            /* ── Loading proposal check ── */
+                            
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
                                 <span style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.12)', borderTopColor: '#ff4d00', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
                             </div>
 
                         ) : alreadyApplied ? (
-                            /* ── Already applied ── */
+                            
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14 }}>
                                 <div style={{
                                     width: 56, height: 56, borderRadius: '50%',
@@ -517,27 +545,32 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         <path d="M22 4L12 14.01l-3-3" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </div>
+
+                                     </svg>
+                                 </div>
                                 <div>
                                     <h3 style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Already Applied</h3>
                                     <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)', lineHeight: 1.55, margin: 0 }}>
                                         You have already submitted a proposal for this task.
-                                    </p>
+                                      </p>
+
                                 </div>
                             </div>
 
                         ) : (
-                            /* ── Proposal Form ── */
+                            
+
                             <>
-                                {/* Form header */}
+                                
                                 <div style={{ marginBottom: 22 }}>
+
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                                         <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,77,0,0.1)', border: '1px solid rgba(255,77,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                                                 <path d="M12 20h9" stroke="#ff4d00" strokeWidth="1.8" strokeLinecap="round" />
                                                 <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#ff4d00" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
+
                                         </div>
                                         <div>
                                             <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', lineHeight: 1 }}>Submit Proposal</div>
@@ -548,10 +581,10 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                 </div>
 
                                 <form ref={formRef} onSubmit={handleProposalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                    {/* Hidden task ID */}
+                                    
                                     <input type="hidden" name="taskId" value={task._id} />
 
-                                    {/* Freelancer email — readonly */}
+                                    
                                     <Field label="Your Email" icon="📧">
                                         <input
                                             type="email"
@@ -562,19 +595,20 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                         />
                                     </Field>
 
-                                    {/* Task ID — visible readonly */}
+                                    
                                     <Field label="Task ID" icon="🔖" hint="Auto-filled from selected task">
                                         <input
                                             type="text"
                                             name="taskIdDisplay"
                                             defaultValue={task._id}
-                                            readOnly
+                                               readOnly
+
                                             className="tdm-form-input readonly"
                                             style={{ fontSize: 10.5, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.04em' }}
                                         />
                                     </Field>
 
-                                    {/* Budget + Days in a grid */}
+                                    
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                         <Field label="Proposed Budget" icon="💰">
                                             <div style={{ position: 'relative' }}>
@@ -583,6 +617,7 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                                     type="number" name="proposedBudget" min="1" step="1"
                                                     placeholder="500"
                                                     className="tdm-form-input"
+
                                                     style={{ paddingLeft: 22 }}
                                                     disabled={submitting}
                                                 />
@@ -590,26 +625,27 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                                         </Field>
                                         <Field label="Est. Days" icon="📅">
                                             <input
-                                                type="number" name="estimatedDays" min="1" step="1"
-                                                placeholder="7"
+                                                  type="number" name="estimatedDays" min="1" step="1"
+                                                 placeholder="7"
+
                                                 className="tdm-form-input"
                                                 disabled={submitting}
                                             />
                                         </Field>
                                     </div>
 
-                                    {/* Cover note */}
+                                    
                                     <Field label="Cover Note" icon="📝" hint="Min. 20 characters">
                                         <textarea
                                             name="coverNote" rows={5}
                                             placeholder="Describe your approach and why you're the best fit for this task…"
-                                            className="tdm-form-input"
+                                              className="tdm-form-input"
                                             style={{ resize: 'vertical', lineHeight: 1.6, minHeight: 100 }}
                                             disabled={submitting}
                                         />
                                     </Field>
 
-                                    {/* Submit */}
+                                    
                                     <button type="submit" className="tdm-submit-btn" disabled={submitting}>
                                         {submitting ? (
                                             <>
@@ -632,9 +668,9 @@ export default function TaskDetailModal({ task, onClose, onProposalSubmit }) {
                     </div>
                 </div>
             </div>
-            <FreelancerDetailModal 
+              <FreelancerDetailModal 
                 open={!!selectedFreelancerEmail} 
-                onClose={() => setSelectedFreelancerEmail(null)} 
+                 onClose={() => setSelectedFreelancerEmail(null)} 
                 freelancerEmail={selectedFreelancerEmail} 
             />
         </>

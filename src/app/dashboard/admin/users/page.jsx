@@ -10,11 +10,16 @@ import Link from 'next/link';
 
 export default function AdminUsersPage() {
     const { data: session, isPending } = useSession();
-    const [users, setUsers] = useState([]);
+    const  [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [actionLoadingId, setActionLoadingId] = useState(null);
+       const [actionLoadingId, setActionLoadingId] = useState(null);
     const [verifyLoadingId, setVerifyLoadingId] = useState(null);
     const [search, setSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search]);
 
     useEffect(() => {
         if (isPending) return;
@@ -27,27 +32,29 @@ export default function AdminUsersPage() {
                 const data = await getAllUsers(session.session.token);
                 setUsers(data || []);
             } catch (err) {
+
                 console.error(err);
                 toast.error('Failed to load users.');
             } finally {
                 setLoading(false);
-            }
+              }
         }
         load();
     }, [session, isPending]);
 
-    const handleToggleBlock = async (userId, currentlyBlocked) => {
+    const  handleToggleBlock = async (userId, currentlyBlocked) => {
         if (!session?.session?.token) return;
         try {
             setActionLoadingId(userId);
             await blockUser(userId, !currentlyBlocked, session.session.token);
             setUsers(prev => prev.map(u =>
                 u._id === userId ? { ...u, isBlocked: !currentlyBlocked } : u
-            ));
+               ));
             toast.success(currentlyBlocked ? 'User unblocked successfully' : 'User blocked successfully');
         } catch (err) {
             toast.error(err.message);
         } finally {
+
             setActionLoadingId(null);
         }
     };
@@ -60,9 +67,10 @@ export default function AdminUsersPage() {
             setUsers(prev => prev.map(u =>
                 u._id === userId ? { ...u, isVerified: !currentlyVerified } : u
             ));
+
             toast.success(currentlyVerified ? 'Verification removed' : '✅ Freelancer verified!');
         } catch (err) {
-            // If endpoint doesn't exist yet, update locally as a preview
+            
             setUsers(prev => prev.map(u =>
                 u._id === userId ? { ...u, isVerified: !currentlyVerified } : u
             ));
@@ -74,12 +82,17 @@ export default function AdminUsersPage() {
 
     const filtered = users.filter(u =>
         u.name?.toLowerCase().includes(search.toLowerCase()) ||
+
         u.email?.toLowerCase().includes(search.toLowerCase()) ||
         u.role?.toLowerCase().includes(search.toLowerCase())
     );
 
+    const limit = 10;
+    const totalPages = Math.ceil(filtered.length / limit) || 1;
+    const paginatedUsers = filtered.slice((currentPage - 1) * limit, currentPage * limit);
+
     if (isPending || loading) {
-        return (
+        return   (
             <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2.5px solid rgba(255,77,0,0.2)', borderTopColor: '#ff4d00', animation: 'spin 0.75s linear infinite' }} />
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', letterSpacing: '0.1em' }}>LOADING USERS</span>
@@ -93,15 +106,15 @@ export default function AdminUsersPage() {
 
 
             <div style={{ marginBottom: 20 }}>
-                <Link href="/dashboard/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}
+                  <Link href="/dashboard/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.color = '#ff4d00'}
                     onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}>
                     <ArrowLeft width={14} height={14} /> Back to Dashboard
                 </Link>
-            </div>
+              </div>
 
-            <div style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                <div>
+               <div style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                  <div>
                     <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
                         Manage <span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Users</span>
                     </h1>
@@ -109,7 +122,7 @@ export default function AdminUsersPage() {
                         Block/unblock users · Grant verification badge to freelancers
                     </p>
                 </div>
-                {/* Search */}
+                {}
                 <input
                     type="text"
                     placeholder="Search users…"
@@ -121,16 +134,17 @@ export default function AdminUsersPage() {
                         background: 'rgba(255,255,255,0.04)',
                         border: '1px solid rgba(255,255,255,0.09)',
                         color: '#fff',
-                        fontSize: 13,
-                        outline: 'none',
+                          fontSize: 13,
+                         outline: 'none',
                         width: 220,
-                    }}
+                      }}
                 />
-            </div>
+               </div>
 
             <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, overflow: 'hidden' }}>
+
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 800 }}>
+                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 800 }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
                                 <th style={{ padding: '16px 20px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Name</th>
@@ -142,29 +156,32 @@ export default function AdminUsersPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map((u, idx) => {
+
+                            {paginatedUsers.map((u, idx) => {
                                 const isBlocked = u.isBlocked;
                                 const isAdmin = u.role === 'admin';
-                                const isFreelancer = u.role === 'freelancer';
+                                const  isFreelancer = u.role === 'freelancer';
                                 const roleColors = { client: '#ff4d00', freelancer: '#a855f7', admin: '#06b6d4' };
                                 const roleColor = roleColors[u.role] || '#fff';
 
                                 return (
                                     <tr key={u._id} style={{
-                                        borderBottom: idx < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                                        borderBottom: idx < paginatedUsers.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                                         transition: 'background 0.2s'
                                     }}
                                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.015)'}
+
                                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                     >
-                                        {/* Name + avatar */}
+                                        {}
                                         <td style={{ padding: '16px 20px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                                 <div style={{
-                                                    width: 32, height: 32, borderRadius: 8, flexShrink: 0, overflow: 'hidden',
+                                                     width: 32, height: 32, borderRadius: 8, flexShrink: 0, overflow: 'hidden',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     background: u.image ? 'transparent' : 'linear-gradient(135deg, #ff4d00, #cc3d00)',
-                                                    fontSize: 11, fontWeight: 800, color: '#fff'
+                                                       fontSize: 11, fontWeight: 800, color: '#fff'
+
                                                 }}>
                                                     {u.image ? <img src={u.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (u.name?.charAt(0)?.toUpperCase() || '?')}
                                                 </div>
@@ -175,22 +192,25 @@ export default function AdminUsersPage() {
                                             </div>
                                         </td>
 
-                                        {/* Email */}
+                                        {}
                                         <td style={{ padding: '16px 20px', fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{u.email}</td>
 
-                                        {/* Role badge */}
+
+                                        {}
                                         <td style={{ padding: '16px 20px' }}>
                                             <span style={{
                                                 display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 99,
+
                                                 fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'monospace',
                                                 color: roleColor, background: `${roleColor}11`, border: `1px solid ${roleColor}33`
                                             }}>
                                                 <span style={{ width: 5, height: 5, borderRadius: '50%', background: roleColor }} />
                                                 {u.role}
                                             </span>
+
                                         </td>
 
-                                        {/* Block status */}
+                                        {}
                                         <td style={{ padding: '16px 20px' }}>
                                             {isBlocked ? (
                                                 <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', fontFamily: 'monospace', letterSpacing: '0.08em' }}>BLOCKED</span>
@@ -199,10 +219,11 @@ export default function AdminUsersPage() {
                                             )}
                                         </td>
 
-                                        {/* Verify toggle — only for freelancers */}
+
+                                        {}
                                         <td style={{ padding: '16px 20px' }}>
                                             {isFreelancer ? (
-                                                <button
+                                                 <button
                                                     disabled={verifyLoadingId === u._id}
                                                     onClick={() => handleToggleVerify(u._id, u.isVerified)}
                                                     title={u.isVerified ? 'Remove verification' : 'Grant verified badge'}
@@ -216,13 +237,14 @@ export default function AdminUsersPage() {
                                                     }}
                                                 >
                                                     {verifyLoadingId === u._id ? '…' : u.isVerified ? '✓ Verified' : '+ Verify'}
-                                                </button>
+                                                 </button>
                                             ) : (
+
                                                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace' }}>N/A</span>
                                             )}
                                         </td>
 
-                                        {/* Block action */}
+                                        {}
                                         <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                                             {isAdmin ? (
                                                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>Protected</span>
@@ -230,8 +252,9 @@ export default function AdminUsersPage() {
                                                 <button
                                                     disabled={actionLoadingId === u._id}
                                                     onClick={() => handleToggleBlock(u._id, isBlocked)}
+
                                                     style={{
-                                                        padding: '5px 12px', borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                                                         padding: '5px 12px', borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
                                                         border: isBlocked ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)',
                                                         background: isBlocked ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
                                                         color: isBlocked ? '#22c55e' : '#ef4444',
@@ -246,17 +269,67 @@ export default function AdminUsersPage() {
                                 );
                             })}
 
-                            {filtered.length === 0 && (
+                            {paginatedUsers.length === 0 && (
                                 <tr>
                                     <td colSpan={6} style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
                                         No users found matching &ldquo;{search}&rdquo;
                                     </td>
                                 </tr>
                             )}
-                        </tbody>
+                         </tbody>
                     </table>
                 </div>
+                {totalPages > 1 && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 16,
+                        padding: '16px 24px',
+                        borderTop: '1px solid rgba(255,255,255,0.06)',
+                        background: 'rgba(255,255,255,0.01)',
+                    }}>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            style={{
+                                padding: '6px 12px',
+                                borderRadius: 8,
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                background: currentPage === 1 ? 'transparent' : 'rgba(255,77,0,0.08)',
+                                color: currentPage === 1 ? 'rgba(255,255,255,0.25)' : '#ff4d00',
+                                fontSize: 12.5,
+                                fontWeight: 600,
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            Previous
+                        </button>
+                        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            style={{
+                                padding: '6px 12px',
+                                borderRadius: 8,
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                background: currentPage === totalPages ? 'transparent' : 'rgba(255,77,0,0.08)',
+                                color: currentPage === totalPages ? 'rgba(255,255,255,0.25)' : '#ff4d00',
+                                fontSize: 12.5,
+                                fontWeight: 600,
+                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
+
     );
 }

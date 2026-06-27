@@ -10,12 +10,12 @@ import { motion } from 'framer-motion';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-// ── Donut Chart ──────────────────────────────────────────────────────────────
+
 function DonutChart({ segments, size = 140, thickness = 22, label, sublabel }) {
     const r = (size - thickness) / 2;
     const cx = size / 2, cy = size / 2;
-    const circ = 2 * Math.PI * r;
-    const total = segments.reduce((s, seg) => s + seg.value, 0);
+    const  circ = 2 * Math.PI * r;
+     const total = segments.reduce((s, seg) => s + seg.value, 0);
     let cumulative = 0;
     return (
         <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -30,37 +30,41 @@ function DonutChart({ segments, size = 140, thickness = 22, label, sublabel }) {
                     cumulative += seg.value;
                     return (
                         <motion.circle
-                            key={i} cx={cx} cy={cy} r={r}
+                               key={i} cx={cx} cy={cy} r={r}
                             fill="none" stroke={seg.color} strokeWidth={thickness}
                             strokeLinecap="round"
                             strokeDasharray={`${dash} ${circ - dash}`}
+
                             strokeDashoffset={-((1 - (cumulative - seg.value) / total) * circ)}
-                            initial={{ strokeDasharray: `0 ${circ}` }}
+                              initial={{ strokeDasharray: `0 ${circ}` }}
                             animate={{ strokeDasharray: `${dash} ${circ - dash}` }}
                             transition={{ duration: 0.9, delay: i * 0.15, ease: 'easeOut' }}
+
                             style={{ filter: `drop-shadow(0 0 6px ${seg.color}88)` }}
                         />
+
                     );
                 })}
             </svg>
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>{label}</div>
+
                 <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>{sublabel}</div>
-            </div>
+               </div>
         </div>
     );
 }
 
-// ── Radial Gauge ─────────────────────────────────────────────────────────────
+
 function RadialGauge({ value, max, color, label, size = 120 }) {
     const r = 48, cx = size / 2, cy = size / 2 + 10;
-    const startAngle = -200, endAngle = 20;
-    const range = endAngle - startAngle;
+       const startAngle = -200, endAngle = 20;
+    const  range = endAngle - startAngle;
     const pct = max > 0 ? Math.min(value / max, 1) : 0;
     const angle = startAngle + pct * range;
     const toRad = (deg) => (deg * Math.PI) / 180;
     const arcPath = (start, end) => {
-        const s = { x: cx + r * Math.cos(toRad(start)), y: cy + r * Math.sin(toRad(start)) };
+           const s = { x: cx + r * Math.cos(toRad(start)), y: cy + r * Math.sin(toRad(start)) };
         const e = { x: cx + r * Math.cos(toRad(end)), y: cy + r * Math.sin(toRad(end)) };
         const large = Math.abs(end - start) > 180 ? 1 : 0;
         return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`;
@@ -69,6 +73,7 @@ function RadialGauge({ value, max, color, label, size = 120 }) {
         <div style={{ position: 'relative', width: size, height: size * 0.75, flexShrink: 0 }}>
             <svg width={size} height={size * 0.75} style={{ overflow: 'visible' }}>
                 <path d={arcPath(startAngle, endAngle)} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={10} strokeLinecap="round" />
+
                 <motion.path
                     d={arcPath(startAngle, angle)}
                     fill="none" stroke={color} strokeWidth={10} strokeLinecap="round"
@@ -80,16 +85,19 @@ function RadialGauge({ value, max, color, label, size = 120 }) {
                 <text x={cx} y={cy + 20} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="9" fontFamily="monospace">{label}</text>
             </svg>
         </div>
+
     );
 }
 
-export default function ClientDashboardHomePage() {
-    const { data: session, isPending: sessionPending } = useSession();
+export default function  ClientDashboardHomePage() {
+    const  { data: session, isPending: sessionPending } = useSession();
     const [tasks, setTasks] = useState([]);
     const [proposals, setProposals] = useState([]);
+
     const [totalSpent, setTotalSpent] = useState(0);
-    const [loading, setLoading] = useState(true);
+     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
 
     useEffect(() => {
         if (sessionPending) return;
@@ -107,16 +115,18 @@ export default function ClientDashboardHomePage() {
 
                 if (session.user.email) {
                     try {
-                        const paymentsRes = await fetch(`${BASE_URL}/api/payments`);
+                          const  paymentsRes = await fetch(`${BASE_URL}/api/payments`);
                         if (paymentsRes.ok) {
                             const payments = await paymentsRes.json();
                             const clientEmail = session.user.email.toLowerCase().trim();
-                            const clientPayments = payments.filter(p =>
-                                p.clientEmail?.toLowerCase() === clientEmail && p.paymentStatus === 'succeeded'
+                            const  clientPayments = payments.filter(p =>
+                                   p.clientEmail?.toLowerCase() === clientEmail && p.paymentStatus === 'succeeded'
                             );
                             setTotalSpent(clientPayments.reduce((sum, p) => sum + (Number(p.payoutSize) || 0), 0));
+
                         }
                     } catch (_) {}
+
                 }
                 setError('');
             } catch (err) {
@@ -128,7 +138,7 @@ export default function ClientDashboardHomePage() {
         fetchDashboardData();
     }, [session, sessionPending]);
 
-    if (sessionPending || loading) {
+     if (sessionPending || loading) {
         return (
             <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2.5px solid rgba(255,77,0,0.2)', borderTopColor: '#ff4d00', animation: 'spin 0.75s linear infinite' }} />
@@ -139,24 +149,26 @@ export default function ClientDashboardHomePage() {
     }
 
     if (!session) {
+
         return (
             <div style={{ padding: '60px 24px', textAlign: 'center', color: '#fff' }}>
+
                 <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Access Denied</h3>
-                <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>Please sign in to view the dashboard.</p>
+                 <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>Please sign in to view the dashboard.</p>
                 <Link href="/auth/login" style={{ padding: '10px 20px', borderRadius: 8, background: '#ff4d00', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>Sign In</Link>
             </div>
         );
     }
 
-    // ── Derived metrics ────────────────────────────────────────────────────────
+    
     const totalTasks      = tasks.length;
     const openTasks       = tasks.filter(t => (t.status || '').toLowerCase() === 'open').length;
     const inProgressTasks = tasks.filter(t => (t.status || '').toLowerCase().replace('-', '_') === 'in_progress').length;
     const completedTasks  = tasks.filter(t => (t.status || '').toLowerCase() === 'completed').length;
     const totalBudget     = tasks.reduce((s, t) => s + (Number(t.budget) || 0), 0);
 
-    // ── Area chart: budget by month ────────────────────────────────────────────
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const monthlyData = {};
     for (let i = 5; i >= 0; i--) { const d = new Date(); d.setMonth(d.getMonth() - i); monthlyData[monthNames[d.getMonth()]] = 0; }
     tasks.forEach(task => {
@@ -165,43 +177,45 @@ export default function ClientDashboardHomePage() {
         if (monthlyData[lbl] !== undefined) monthlyData[lbl] += (task.budget || 0);
     });
     const chartLabels = Object.keys(monthlyData);
-    const chartValues = Object.values(monthlyData);
-    const maxVal = Math.max(...chartValues, 500);
-    const cW = 500, cH = 160, pL = 44, pR = 16, pT = 20, pB = 24;
+
+     const chartValues = Object.values(monthlyData);
+    const  maxVal = Math.max(...chartValues, 500);
+    const  cW = 500, cH = 160, pL = 44, pR = 16, pT = 20, pB = 24;
     const gW = cW - pL - pR, gH = cH - pT - pB;
     const pts = chartValues.map((v, i) => ({ x: pL + (i / Math.max(chartValues.length - 1, 1)) * gW, y: pT + gH - (v / maxVal) * gH }));
     const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
     const areaPath = pts.length > 0 ? `${linePath} L ${pts[pts.length-1].x} ${pT+gH} L ${pts[0].x} ${pT+gH} Z` : '';
 
-    // ── Bar chart: tasks per month ─────────────────────────────────────────────
+    
     const monthlyTaskCount = {};
     for (let i = 5; i >= 0; i--) { const d = new Date(); d.setMonth(d.getMonth() - i); monthlyTaskCount[monthNames[d.getMonth()]] = 0; }
     tasks.forEach(t => {
         if (!t.createdAt) return;
         const lbl = monthNames[new Date(t.createdAt).getMonth()];
         if (monthlyTaskCount[lbl] !== undefined) monthlyTaskCount[lbl]++;
-    });
+     });
+
     const barLabels = Object.keys(monthlyTaskCount);
     const barValues = Object.values(monthlyTaskCount);
     const maxBar = Math.max(...barValues, 3);
 
-    // ── Donut chart: task status distribution ──────────────────────────────────
+    
     const donutSegments = [
         { label: 'Open',        value: openTasks,       color: '#06b6d4' },
-        { label: 'In Progress', value: inProgressTasks, color: '#eab308' },
+           { label: 'In Progress', value: inProgressTasks, color: '#eab308' },
         { label: 'Completed',   value: completedTasks,  color: '#22c55e' },
         { label: 'Other',       value: Math.max(totalTasks - openTasks - inProgressTasks - completedTasks, 0), color: 'rgba(255,255,255,0.12)' },
     ].filter(s => s.value > 0);
 
-    // ── Category breakdown ─────────────────────────────────────────────────────
+    
     const catCounts = {};
     tasks.forEach(t => { if (t.category) catCounts[t.category] = (catCounts[t.category] || 0) + 1; });
     const catList = Object.entries(catCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const catColors = ['#ff4d00','#a855f7','#06b6d4','#10b981','#eab308'];
 
-    // ── Proposal win rate ──────────────────────────────────────────────────────
-    const acceptedProposals = proposals.filter(p => p.status?.toLowerCase() === 'accepted').length;
-    const winRate = proposals.length > 0 ? acceptedProposals / proposals.length : 0;
+    
+    const  acceptedProposals = proposals.filter(p => p.status?.toLowerCase() === 'accepted').length;
+    const  winRate = proposals.length > 0 ? acceptedProposals / proposals.length : 0;
 
     const CARD = { padding: '24px 26px', borderRadius: 20, background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 16 };
 
@@ -209,7 +223,7 @@ export default function ClientDashboardHomePage() {
         <div className="dash-page-container">
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-            {/* Header */}
+            
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, marginBottom: 36, flexWrap: 'wrap' }}>
                 <div>
@@ -221,7 +235,9 @@ export default function ClientDashboardHomePage() {
                     </p>
                 </div>
                 <Link href="/dashboard/client/post-task" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 12, background: 'linear-gradient(135deg, #ff4d00, #cc3d00)', color: '#fff', fontSize: 13.5, fontWeight: 700, textDecoration: 'none', boxShadow: '0 0 20px rgba(255,77,0,0.3)' }}>
+
                     <Plus width={16} height={16} /> Post a New Task
+
                 </Link>
             </motion.div>
 
@@ -230,7 +246,9 @@ export default function ClientDashboardHomePage() {
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, marginBottom: 32 }}>
                 {[
+
                     { label: 'Total Tasks',      value: totalTasks,       desc: 'All posted tasks',          icon: Briefcase,    color: '#ff4d00', bg: 'rgba(255,77,0,0.07)',    href: '/dashboard/client/my-tasks' },
+
                     { label: 'Open Tasks',        value: openTasks,        desc: 'Accepting new proposals',   icon: FileText,     color: '#06b6d4', bg: 'rgba(6,182,212,0.07)',   href: '/dashboard/client/my-tasks' },
                     { label: 'In Progress',       value: inProgressTasks,  desc: 'Currently being worked on', icon: ChartBar,     color: '#eab308', bg: 'rgba(234,179,8,0.07)',   href: '/dashboard/client/my-tasks' },
                     { label: 'Total Spent',       value: `$${totalSpent.toLocaleString('en-US',{minimumFractionDigits:2})}`, desc: 'Paid via Stripe (USD)', icon: CircleDollar, color: '#22c55e', bg: 'rgba(34,197,94,0.07)', href: null },
@@ -263,10 +281,12 @@ export default function ClientDashboardHomePage() {
                     <div>
                         <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 3px' }}>Budget Posted Over Time</h3>
                         <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)' }}>Cumulative task budget (USD) — last 6 months</span>
+
                     </div>
                     <div style={{ width: '100%' }}>
                         <svg viewBox={`0 0 ${cW} ${cH}`} width="100%" height="100%" style={{ overflow: 'visible' }}>
                             <defs>
+
                                 <linearGradient id="aGrad" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stopColor="#ff4d00" stopOpacity="0.3" />
                                     <stop offset="100%" stopColor="#ff4d00" stopOpacity="0" />
@@ -281,21 +301,23 @@ export default function ClientDashboardHomePage() {
                                 </text>
                             ))}
                             {areaPath && <motion.path d={areaPath} fill="url(#aGrad)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} />}
+
                             {linePath && <motion.path d={linePath} fill="none" stroke="#ff4d00" strokeWidth="2.5" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 6px rgba(255,77,0,0.5))' }} initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.2, ease: 'easeInOut' }} />}
-                            {pts.map((p, i) => (
-                                <g key={i}>
+                               {pts.map((p, i) => (
+                                 <g key={i}>
+
                                     <motion.circle cx={p.x} cy={p.y} r="4" fill="#ff4d00" stroke="#080808" strokeWidth="1.5" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.3, delay: 0.6 + i * 0.08 }} />
                                     {chartValues[i] > 0 && <motion.text x={p.x} y={p.y - 9} textAnchor="middle" fill="#fff" fontSize="8.5" fontWeight="700" fontFamily="monospace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 + i * 0.08 }}>${chartValues[i]}</motion.text>}
                                 </g>
                             ))}
                             {chartLabels.map((lbl, i) => (
-                                <text key={i} x={pL + (i / Math.max(chartLabels.length-1,1)) * gW} y={cH-4} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="9" fontFamily="monospace">{lbl}</text>
+                                 <text key={i} x={pL + (i / Math.max(chartLabels.length-1,1)) * gW} y={cH-4} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="9" fontFamily="monospace">{lbl}</text>
                             ))}
                         </svg>
                     </div>
-                </div>
+                 </div>
 
-                {/* 2. Donut Chart — Task Status Distribution */}
+                   {/* 2. Donut Chart — Task Status Distribution */}
                 <div style={CARD}>
                     <div>
                         <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 3px' }}>Task Status Breakdown</h3>
@@ -306,6 +328,7 @@ export default function ClientDashboardHomePage() {
                             segments={donutSegments.length ? donutSegments : [{ label: 'No Data', value: 1, color: 'rgba(255,255,255,0.08)' }]}
                             size={140} thickness={20}
                             label={totalTasks} sublabel="Tasks"
+
                         />
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minWidth: 120 }}>
                             {[
@@ -317,26 +340,28 @@ export default function ClientDashboardHomePage() {
                                     style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <span style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0, boxShadow: `0 0 6px ${s.color}` }} />
                                     <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', flex: 1 }}>{s.label}</span>
+
                                     <span style={{ fontSize: 13, fontWeight: 800, color: s.color, fontFamily: 'monospace' }}>{s.value}</span>
-                                </motion.div>
+                                   </motion.div>
                             ))}
                         </div>
-                    </div>
+                       </div>
                 </div>
-            </div>
+             </div>
 
             {/* ── Row 2: Bar Chart + Radial Gauge + Category Bars ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,260px),1fr))', gap: 20, marginBottom: 20 }}>
 
-                {/* 3. Bar Chart — Tasks Created Per Month */}
+                   {/* 3. Bar Chart — Tasks Created Per Month */}
                 <div style={CARD}>
                     <div>
-                        <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 3px' }}>Tasks Created / Month</h3>
+
+                          <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 3px' }}>Tasks Created / Month</h3>
                         <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)' }}>Number of tasks posted each month</span>
-                    </div>
+                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 120, paddingBottom: 20, justifyContent: 'space-around' }}>
                         {barLabels.map((lbl, i) => {
-                            const val = barValues[i];
+                               const val = barValues[i];
                             const h = maxBar > 0 ? Math.max((val / maxBar) * 90, 4) : 4;
                             return (
                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flex: 1 }}>
@@ -353,12 +378,13 @@ export default function ClientDashboardHomePage() {
                 {/* 4. Radial Gauges — Proposal Win Rate */}
                 <div style={CARD}>
                     <div>
-                        <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 3px' }}>Proposal Metrics</h3>
+                          <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 3px' }}>Proposal Metrics</h3>
                         <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)' }}>Acceptance rate on submitted bids</span>
                     </div>
+
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: 16, flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                            <RadialGauge value={acceptedProposals} max={Math.max(proposals.length, 1)} color="#22c55e" label="WIN RATE" size={120} />
+                              <RadialGauge value={acceptedProposals} max={Math.max(proposals.length, 1)} color="#22c55e" label="WIN RATE" size={120} />
                             <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', letterSpacing: '0.08em' }}>ACCEPTED</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -408,7 +434,7 @@ export default function ClientDashboardHomePage() {
                         </div>
                     )}
                 </div>
-            </div>
+             </div>
 
             {/* ── Bottom: Recent Bids + Quick Actions ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 20 }}>
@@ -416,6 +442,7 @@ export default function ClientDashboardHomePage() {
                 <div style={CARD}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Recent Incoming Bids</h3>
+
                         <Link href="/dashboard/client/proposals" style={{ fontSize: 12, fontWeight: 700, color: '#ff4d00', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                             View all <ArrowRight width={12} height={12} />
                         </Link>
@@ -427,7 +454,7 @@ export default function ClientDashboardHomePage() {
                             {proposals.slice(0, 4).map((p, i) => {
                                 const isA = p.status?.toLowerCase() === 'accepted';
                                 const isR = p.status?.toLowerCase() === 'rejected';
-                                const c = isA ? '#22c55e' : isR ? '#ef4444' : '#ff8040';
+                                const  c = isA ? '#22c55e' : isR ? '#ef4444' : '#ff8040';
                                 return (
                                     <motion.div key={p._id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.05 }}
                                         style={{ padding: '13px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -437,7 +464,8 @@ export default function ClientDashboardHomePage() {
                                         </div>
                                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                             <div style={{ fontSize: 13, fontWeight: 800, color: '#ff4d00', marginBottom: 2 }}>${p.proposedBudget}</div>
-                                            <span style={{ fontSize: 9, fontWeight: 700, color: c, fontFamily: 'monospace', letterSpacing: '0.06em', textTransform: 'uppercase' }}>● {p.status}</span>
+                                               <span style={{ fontSize: 9, fontWeight: 700, color: c, fontFamily: 'monospace', letterSpacing: '0.06em', textTransform: 'uppercase' }}>● {p.status}</span>
+
                                         </div>
                                     </motion.div>
                                 );
@@ -447,25 +475,26 @@ export default function ClientDashboardHomePage() {
                 </div>
 
                 {/* Quick Actions */}
+
                 <div style={CARD}>
                     <h3 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Quick Actions</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, justifyContent: 'center' }}>
                         {[
                             { label: 'Post a New Task',   desc: 'Publish a job and receive proposals',    href: '/dashboard/client/post-task' },
                             { label: 'Manage My Tasks',   desc: 'Edit, view, or delete posted tasks',     href: '/dashboard/client/my-tasks' },
-                            { label: 'Review Proposals',  desc: 'Accept or decline submitted bids',       href: '/dashboard/client/proposals' },
-                            { label: 'Account Settings',  desc: 'Profile, notifications, security',       href: '/dashboard/client/settings' },
+                               { label: 'Review Proposals',  desc: 'Accept or decline submitted bids',       href: '/dashboard/client/proposals' },
+                              { label: 'Account Settings',  desc: 'Profile, notifications, security',       href: '/dashboard/client/settings' },
                         ].map((act, i) => (
                             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.06 }} whileHover={{ scale: 1.01 }}>
                                 <Link href={act.href} style={{ textDecoration: 'none' }}>
                                     <div style={{ padding: '13px 15px', borderRadius: 11, border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,77,0,0.02)', cursor: 'pointer', transition: 'all 0.18s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.28)'; e.currentTarget.style.background = 'rgba(255,77,0,0.05)'; }}
+                                           onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.28)'; e.currentTarget.style.background = 'rgba(255,77,0,0.05)'; }}
                                         onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.background = 'rgba(255,77,0,0.02)'; }}>
-                                        <div>
+                                           <div>
                                             <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{act.label}</div>
                                             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{act.desc}</div>
                                         </div>
-                                        <ArrowRight width={14} height={14} style={{ color: '#ff4d00', flexShrink: 0 }} />
+                                          <ArrowRight width={14} height={14} style={{ color: '#ff4d00', flexShrink: 0 }} />
                                     </div>
                                 </Link>
                             </motion.div>

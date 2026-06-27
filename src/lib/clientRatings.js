@@ -6,12 +6,12 @@ export function normalizeId(id) {
     return typeof id === 'string' ? id : String(id);
 }
 
-export function getClientKey({ clientId, clientEmail, clientName } = {}) {
+export function  getClientKey({ clientId, clientEmail, clientName } = {}) {
     return clientId || clientEmail || clientName || null;
 }
 
 export function getStoredRatings() {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') return   [];
     try {
         const raw = localStorage.getItem(RATINGS_KEY);
         return raw ? JSON.parse(raw) : [];
@@ -21,17 +21,18 @@ export function getStoredRatings() {
 }
 
 export function saveRatingLocally(rating) {
+
     if (typeof window === 'undefined') return;
     try {
         const pid = normalizeId(rating.proposalId);
         const existing = getStoredRatings().filter(r => normalizeId(r.proposalId) !== pid);
         existing.unshift({
             ...rating,
-            proposalId: pid,
+              proposalId: pid,
             createdAt: rating.createdAt || new Date().toISOString(),
         });
         localStorage.setItem(RATINGS_KEY, JSON.stringify(existing.slice(0, 200)));
-        window.dispatchEvent(new CustomEvent(RATINGS_UPDATED_EVENT));
+         window.dispatchEvent(new CustomEvent(RATINGS_UPDATED_EVENT));
     } catch (_) {}
 }
 
@@ -42,12 +43,12 @@ export function getRatingByProposalId(proposalId) {
 }
 
 export function getRatingsMapByProposalId() {
-    const map = {};
+    const  map = {};
     getStoredRatings().forEach(r => {
         const pid = normalizeId(r.proposalId);
         if (pid) map[pid] = r;
     });
-    return map;
+     return   map;
 }
 
 export function mergeRatingsMaps(...maps) {
@@ -55,14 +56,16 @@ export function mergeRatingsMaps(...maps) {
 }
 
 export function getClientAverageRating(clientKey) {
+
     if (!clientKey) return null;
     const ratings = getStoredRatings().filter(
         r => r.clientId === clientKey || r.clientEmail === clientKey || r.clientName === clientKey
     );
     if (ratings.length === 0) return null;
     const sum = ratings.reduce((acc, r) => acc + Number(r.stars || 0), 0);
-    return {
+    return   {
         average: sum / ratings.length,
         count: ratings.length,
+
     };
 }

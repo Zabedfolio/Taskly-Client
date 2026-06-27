@@ -10,7 +10,7 @@ import {
 } from '@gravity-ui/icons';
 
 const CATEGORY_ICON_MAP = {
-    thunderbolt:  Thunderbolt,
+      thunderbolt:  Thunderbolt,
     palette:      Palette,
     pencilToLine: PencilToLine,
     megaphone:    Megaphone,
@@ -20,8 +20,9 @@ const CATEGORY_ICON_MAP = {
 
 function CategoryIcon({ iconKey, color, size = 9 }) {
     const Icon = CATEGORY_ICON_MAP[iconKey] || Briefcase;
-    return <Icon width={size} height={size} style={{ color, flexShrink: 0 }} />;
+    return   <Icon width={size} height={size} style={{ color, flexShrink: 0 }} />;
 }
+
 
 const CATEGORY_STYLES = {
   "UI Design":   { textColor: "#ff9a50", bg: "#ff640020", border: "#ff640038", iconKey: "palette"      },
@@ -32,10 +33,10 @@ const CATEGORY_STYLES = {
 };
 
 function getDeadlineColor(dueDateStr) {
-  const daysLeft = Math.ceil((new Date(dueDateStr) - new Date()) / 86400000);
-  if (daysLeft <= 3) return "#fb7185";
-  if (daysLeft <= 7) return "#fbbf24";
-  return "#ffffffbf";
+  const  daysLeft = Math.ceil((new Date(dueDateStr) - new Date()) / 86400000);
+    if (daysLeft <= 3) return "#fb7185";
+    if (daysLeft <= 7) return "#fbbf24";
+  return   "#ffffffbf";
 }
 
 function formatDate(dueDateStr) {
@@ -46,15 +47,16 @@ export default function TaskCard({ task, index = 0, onClick }) {
   const cat     = CATEGORY_STYLES[task.category] ?? CATEGORY_STYLES["Development"];
   const dlColor = getDeadlineColor(task.dueDate);
   const { data: session } = useSession();
-  const { toggleBookmark, isBookmarked } = useBookmarks();
+   const { toggleBookmark, isBookmarked } = useBookmarks();
   const user = session?.user;
   const taskId = task._id || task.id;
   const bookmarked = taskId ? isBookmarked(taskId) : false;
 
   return (
     <motion.article
+
       initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
+       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.55, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -5, boxShadow: "0 20px 60px rgba(255,77,0,0.13), 0 0 0 1px rgba(255,77,0,0.20)" }}
@@ -62,10 +64,10 @@ export default function TaskCard({ task, index = 0, onClick }) {
       onClick={onClick}
       style={{
         background: "#0f0604",
-        border: "1px solid rgba(255,255,255,0.07)",
+          border: "1px solid rgba(255,255,255,0.07)",
       }}
     >
-      {/* Top accent bar */}
+      
       <motion.div
         className="h-[3px] w-full"
         style={{ background: "linear-gradient(90deg,#ff4d00,#ff8c42,transparent)", transformOrigin: "left" }}
@@ -74,10 +76,10 @@ export default function TaskCard({ task, index = 0, onClick }) {
         transition={{ duration: 0.3 }}
       />
 
-      <div className="flex flex-col flex-1 p-[22px] gap-0">
+        <div className="flex flex-col flex-1 p-[22px] gap-0">
 
-        {/* Bookmark */}
-        {user && taskId && (
+        
+         {user && taskId && (
           <button
             type="button"
             onClick={(e) => {
@@ -92,6 +94,7 @@ export default function TaskCard({ task, index = 0, onClick }) {
             className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-lg"
             style={{
               border: bookmarked ? "1px solid rgba(255,160,0,0.45)" : "1px solid rgba(255,255,255,0.08)",
+
               background: bookmarked ? "rgba(255,160,0,0.12)" : "rgba(255,255,255,0.03)",
               color: bookmarked ? "#ffb300" : "rgba(255,255,255,0.4)",
               cursor: "pointer",
@@ -99,19 +102,21 @@ export default function TaskCard({ task, index = 0, onClick }) {
           >
             <svg width="13" height="13" viewBox="0 0 24 24"
               fill={bookmarked ? "currentColor" : "none"}
+
               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
             </svg>
           </button>
         )}
 
-        {/* Category pill */}
+        
+
         <div className="mb-[14px]">
           <span
             className="inline-flex items-center gap-[5px] rounded-[6px] px-[9px] py-[4px] whitespace-nowrap"
             style={{
               fontFamily: "'JetBrains Mono',monospace",
-              fontSize: 9, fontWeight: 700, letterSpacing: "0.16em",
+               fontSize: 9, fontWeight: 700, letterSpacing: "0.16em",
               textTransform: "uppercase",
               color: cat.textColor,
               background: cat.bg,
@@ -119,22 +124,24 @@ export default function TaskCard({ task, index = 0, onClick }) {
             }}
           >
             <CategoryIcon iconKey={cat.iconKey} color={cat.textColor} size={9} />
+
             {task.category}
-          </span>
+            </span>
         </div>
 
-        {/* Title */}
+        
         <p className="text-[15px] font-bold leading-[1.35] tracking-[-0.01em] text-white/90 mb-[16px]">
           {task.title}
         </p>
 
-        {/* Divider */}
+        
         <div
           className="h-px mb-[16px]"
+
           style={{ background: "linear-gradient(90deg,rgba(255,77,0,0.18),rgba(255,255,255,0.05),transparent)" }}
         />
 
-        {/* Client */}
+        
         <div className="flex items-center gap-[9px] mb-[16px]">
           <div
             className="w-[30px] h-[30px] rounded-full shrink-0 flex items-center justify-center text-[11px] font-extrabold"
@@ -151,6 +158,7 @@ export default function TaskCard({ task, index = 0, onClick }) {
             <div className="text-[12px] font-semibold text-white/72">{task.clientName}</div>
             <div className="mt-1">
               <ClientRatingBadge
+
                 clientId={task.clientId}
                 clientEmail={task.clientEmail}
                 clientName={task.clientName}
@@ -160,7 +168,7 @@ export default function TaskCard({ task, index = 0, onClick }) {
           </div>
         </div>
 
-        {/* Budget + Deadline */}
+        
         <div className="flex items-stretch gap-[10px]">
 
           <div
@@ -169,6 +177,7 @@ export default function TaskCard({ task, index = 0, onClick }) {
           >
             <div
               className="mb-[5px]"
+
               style={{
                 fontFamily: "'JetBrains Mono',monospace",
                 fontSize: 8.5, fontWeight: 700, letterSpacing: "0.14em",
@@ -183,6 +192,7 @@ export default function TaskCard({ task, index = 0, onClick }) {
                 fontSize: 15, fontWeight: 700,
                 color: "#ff8040", letterSpacing: "-0.02em",
               }}
+
             >
               ${task.budget.toLocaleString()}
             </div>
@@ -190,12 +200,13 @@ export default function TaskCard({ task, index = 0, onClick }) {
 
           <div
             className="flex-1 min-w-0 rounded-[10px] px-[12px] py-[10px]"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
             <div
               className="mb-[5px]"
               style={{
                 fontFamily: "'JetBrains Mono',monospace",
+
                 fontSize: 8.5, fontWeight: 700, letterSpacing: "0.14em",
                 textTransform: "uppercase", color: "rgba(255,255,255,0.28)",
               }}
@@ -209,11 +220,13 @@ export default function TaskCard({ task, index = 0, onClick }) {
                 color: dlColor, letterSpacing: "-0.01em",
               }}
             >
+
               {formatDate(task.dueDate)}
-            </div>
+              </div>
+
           </div>
 
-        </div>
+         </div>
 
       </div>
     </motion.article>

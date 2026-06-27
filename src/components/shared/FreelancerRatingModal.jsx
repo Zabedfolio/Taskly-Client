@@ -1,26 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { AnimatePresence, motion } from 'framer-motion';
 import StarRating from './StarRating';
 import { rateFreelancer } from '@/lib/api/client/rateFreelancer';
 import toast from 'react-hot-toast';
 import { normalizeId } from '@/lib/freelancerRatings';
 
-/**
- * Modal for a client to rate a freelancer after task completion.
- *
- * @param {Object} props
- * @param {boolean} props.open
- * @param {Function} props.onClose
- * @param {Object} props.task       - { _id, title, freelancerEmail }
- * @param {string} props.token      - Session token for auth
- * @param {Function} props.onSubmitted - Called after successful submit
- */
+
 export default function FreelancerRatingModal({ open, onClose, task, token, onSubmitted }) {
     const [stars, setStars] = useState(0);
-    const [review, setReview] = useState('');
-    const [submitting, setSubmitting] = useState(false);
+    const  [review, setReview] = useState('');
+    const  [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -36,7 +28,9 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
 
     async function handleSubmit(e) {
         e.preventDefault();
+
         if (stars === 0) {
+
             toast.error('Please select a star rating.');
             return;
         }
@@ -49,19 +43,20 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
         const tId = toast.loading('Submitting your review…');
         try {
             const tid = normalizeId(task._id);
-            const result = await rateFreelancer({
+            const  result = await rateFreelancer({
                 taskId: tid,
                 freelancerEmail: task.freelancerEmail,
                 stars,
                 review,
                 token,
-            });
+              });
 
             toast.success(
                 result.source === 'local'
+
                     ? 'Review saved (server pending — restart taskly-server for sync)'
                     : 'Review submitted successfully!',
-                { id: tId }
+                  { id: tId }
             );
             onSubmitted?.({ taskId: tid, stars, review: review.trim() });
             onClose();
@@ -72,11 +67,12 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
         }
     }
 
-    return (
+    return   (
         <AnimatePresence>
             {open && (
                 <motion.div
                     initial={{ opacity: 0 }}
+
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
@@ -87,7 +83,8 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
                         WebkitBackdropFilter: 'blur(6px)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         padding: 16,
-                    }}
+
+                       }}
                 >
                     <motion.div
                         initial={{ scale: 0.94, y: 20, opacity: 0 }}
@@ -95,21 +92,23 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
                         exit={{ scale: 0.94, y: 20, opacity: 0 }}
                         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                         onClick={e => e.stopPropagation()}
-                        style={{
+                          style={{
                             width: '100%', maxWidth: 440,
                             background: 'linear-gradient(180deg, #141414 0%, #0f0f0f 100%)',
                             border: '1px solid rgba(255,128,0,0.15)',
                             borderRadius: 24,
                             boxShadow: '0 30px 80px rgba(0,0,0,0.8)',
+
                             padding: '32px 28px',
                             color: '#fff',
                         }}
                     >
-                        {/* Header */}
+                        
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
                             <div>
                                 <h2 style={{ fontSize: 20, fontWeight: 900, margin: 0, color: '#fff' }}>Rate Your Freelancer</h2>
-                                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>
+
+                                 <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>
                                     Share your experience working with this freelancer
                                 </p>
                             </div>
@@ -126,30 +125,33 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
                             >
                                 ✕
                             </button>
+
                         </div>
 
-                        {/* Task summary */}
+                        
                         <div style={{
-                            padding: '12px 14px', borderRadius: 12,
+
+                               padding: '12px 14px', borderRadius: 12,
                             background: 'rgba(255,255,255,0.02)',
                             border: '1px solid rgba(255,255,255,0.06)',
-                            marginBottom: 24,
+                              marginBottom: 24,
                         }}>
-                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', textTransform: 'uppercase', marginBottom: 4 }}>
+                               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', textTransform: 'uppercase', marginBottom: 4 }}>
                                 Project
-                            </div>
+                              </div>
                             <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {task.title}
-                            </div>
+                               </div>
+
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
                                 <span>Freelancer:</span>
                                 <strong style={{ color: 'rgba(255,255,255,0.7)', wordBreak: 'break-all' }}>{task.freelancerEmail}</strong>
                             </div>
                         </div>
 
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                            {/* Star picker */}
+                        
+                          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                            
                             <div>
                                 <div style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
                                     Overall Rating
@@ -157,6 +159,7 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '16px', borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
                                     <StarRating value={stars} onChange={setStars} size="lg" />
                                     <span style={{
+
                                         fontSize: 13, fontWeight: 700, color: stars > 0 ? '#ff8040' : 'rgba(255,255,255,0.2)',
                                         transition: 'color 0.2s',
                                     }}>
@@ -165,21 +168,23 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
                                 </div>
                             </div>
 
-                            {/* Review text */}
+                            
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                 <label style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                                     Review <span style={{ color: 'rgba(255,255,255,0.2)', fontWeight: 400 }}>(optional)</span>
                                 </label>
                                 <textarea
                                     placeholder="Describe your experience with this freelancer…"
+
                                     value={review}
                                     onChange={e => setReview(e.target.value)}
                                     maxLength={500}
                                     rows={4}
                                     style={{
+
                                         padding: '12px 14px',
                                         borderRadius: 12,
-                                        background: 'rgba(255,255,255,0.04)',
+                                           background: 'rgba(255,255,255,0.04)',
                                         border: '1px solid rgba(255,255,255,0.08)',
                                         color: '#fff',
                                         fontSize: 13.5,
@@ -187,24 +192,28 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
                                         outline: 'none',
                                         fontFamily: 'inherit',
                                         transition: 'border 0.2s',
-                                    }}
+                                       }}
                                     onFocus={e => e.currentTarget.style.borderColor = '#ff8040'}
                                     onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                                 />
-                                <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', textAlign: 'right' }}>
+                                 <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', textAlign: 'right' }}>
+
                                     {review.length}/500
                                 </span>
+
                             </div>
 
-                            {/* Submit */}
+                            
                             <button
                                 type="submit"
                                 disabled={submitting || stars === 0}
                                 style={{
                                     padding: '13px',
                                     borderRadius: 12,
+
                                     border: 'none',
                                     background: submitting || stars === 0
+
                                         ? 'rgba(255,128,64,0.3)'
                                         : 'linear-gradient(135deg, #ff8040, #ff5000)',
                                     color: '#fff',
@@ -223,15 +232,18 @@ export default function FreelancerRatingModal({ open, onClose, task, token, onSu
                                             <path d="M8 2a6 6 0 0 1 6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
                                         </svg>
                                         Submitting…
+
                                     </>
-                                ) : (
+
+                                   ) : (
                                     <>⭐ Submit Review</>
                                 )}
                             </button>
                         </form>
                     </motion.div>
                 </motion.div>
-            )}
+
+              )}
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </AnimatePresence>
     );

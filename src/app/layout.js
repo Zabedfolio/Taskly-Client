@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import ConditionalShell from "@/components/common/ConditionalShell";
+
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
@@ -7,7 +8,8 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
+
+    variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
@@ -17,17 +19,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Taskly — Freelance Platform",
+    title: "Taskly — Freelance Platform",
   description: "Connect with top freelancers and get your tasks done.",
 };
 
+
 export default function RootLayout({ children }) {
-  return (
+  return   (
     <html
       lang="en"
       data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+
       <body className="min-h-full bg-background text-foreground">
         <ThemeProvider>
           <NotificationProvider>
@@ -35,10 +39,10 @@ export default function RootLayout({ children }) {
               <ConditionalShell>
                 <div>{children}</div>
               </ConditionalShell>
-              <Toaster
+                <Toaster
                 position="bottom-right"
                 toastOptions={{
-                  style: {
+                    style: {
                     background: '#0f0f11',
                     color: '#fff',
                     borderRadius: '12px',
@@ -48,12 +52,12 @@ export default function RootLayout({ children }) {
                     border: '1px solid rgba(255,255,255,0.08)',
                     fontFamily: 'system-ui, -apple-system, sans-serif',
                   },
-                  icon: null,
+                     icon: null,
                   success: {
                     style: {
                       background: '#0f0f11',
-                      border: '1px solid rgba(34, 197, 94, 0.4)',
-                      color: '#fff',
+                         border: '1px solid rgba(34, 197, 94, 0.4)',
+                        color: '#fff',
                     },
                     icon: null,
                   },
@@ -61,7 +65,8 @@ export default function RootLayout({ children }) {
                     style: {
                       background: '#0f0f11',
                       border: '1px solid rgba(255, 77, 0, 0.4)',
-                      color: '#fff',
+
+                         color: '#fff',
                     },
                     icon: null,
                   },
@@ -69,7 +74,7 @@ export default function RootLayout({ children }) {
                     style: {
                       background: '#0f0f11',
                       border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: '#fff',
+                         color: '#fff',
                     },
                     icon: null,
                   },

@@ -19,13 +19,15 @@ import {
 } from '@gravity-ui/icons';
 import UnauthorizedPage from '@/app/unauthorized/page';
 
-// ─── Nav map per role ─────────────────────────────────────────────────────────
+
 const NAV_MAP = {
     client: [
+
         { id: 'home', label: 'Go to Home', icon: House, href: '/' },
         { id: 'dashboard', label: 'Dashboard', icon: LayoutCellsLarge, href: '/dashboard/client' },
         { id: 'post-task', label: 'Post a Task', icon: Plus, href: '/dashboard/client/post-task' },
         { id: 'my-tasks', label: 'My Tasks', icon: Briefcase, href: '/dashboard/client/my-tasks' },
+
         { id: 'proposals', label: 'Proposals', icon: FileText, href: '/dashboard/client/proposals' },
         { id: 'settings', label: 'Settings', icon: Gear, href: '/dashboard/client/settings' },
     ],
@@ -39,6 +41,7 @@ const NAV_MAP = {
         { id: 'earnings', label: 'Earnings', icon: CreditCard, href: '/dashboard/freelancer/earnings' },
         { id: 'settings', label: 'Settings', icon: Gear, href: '/dashboard/freelancer/settings' },
     ],
+
     admin: [
         { id: 'home', label: 'Go to Home', icon: House, href: '/' },
         { id: 'dashboard', label: 'Dashboard', icon: LayoutCellsLarge, href: '/dashboard/admin' },
@@ -49,35 +52,39 @@ const NAV_MAP = {
     ],
 };
 
+
 const ALLOWED_ROLES = ['client', 'freelancer', 'admin'];
 
-// ─── Layout constants ─────────────────────────────────────────────────────────
-const NAVBAR_HEIGHT = 0;
+
+
+const  NAVBAR_HEIGHT = 0;
 const DASH_TOPBAR_HEIGHT = 56;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function getInitials(name) {
     if (!name) return '??';
-    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+
+       return   name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 }
 function routeToNavId(pathname, navItems) {
+
     if (!pathname) return 'dashboard';
-    const matched = navItems.find(
+     const matched = navItems.find(
         item => item.id !== 'dashboard' && item.id !== 'home' && pathname.startsWith(item.href)
     );
     return matched ? matched.id : 'dashboard';
 }
 
-// ─── Role accent colours ──────────────────────────────────────────────────────
+
 const ROLE_ACCENT = {
     client: { color: '#ff4d00', glow: 'rgba(255,77,0,0.18)', label: 'Client' },
     freelancer: { color: '#ff4d00', glow: 'rgba(255,77,0,0.18)', label: 'Freelancer' },
     admin: { color: '#ff4d00', glow: 'rgba(255,77,0,0.18)', label: 'Admin' },
 };
 
-// ─── Loading skeleton ─────────────────────────────────────────────────────────
+
 function LoadingSkeleton() {
-    return (
+     return (
         <div style={{ minHeight: '100vh', display: 'flex', background: '#080808', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
                 <div style={{
@@ -85,33 +92,36 @@ function LoadingSkeleton() {
                     border: '2.5px solid rgba(255,77,0,0.2)', borderTopColor: '#ff4d00',
                     animation: 'spin 0.75s linear infinite',
                 }} />
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', letterSpacing: '0.1em' }}>
+                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', letterSpacing: '0.1em' }}>
                     LOADING
                 </span>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
         </div>
     );
 }
 
-// ─── Nav list ─────────────────────────────────────────────────────────────────
+
 function NavList({ navItems, activeId, collapsed = false, onClose }) {
     return (
-        <nav style={{ flex: 1, padding: collapsed ? '12px 8px' : '12px 12px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+         <nav style={{ flex: 1, padding: collapsed ? '12px 8px' : '12px 12px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
             {navItems.map(({ id, label, href, icon: Icon }) => {
-                const isActive = activeId === id;
+                const  isActive = activeId === id;
                 return (
+
                     <Link key={id} href={href} onClick={() => onClose?.()} title={collapsed ? label : undefined} style={{
-                        position: 'relative', display: 'flex', alignItems: 'center',
-                        gap: collapsed ? 0 : 11,
+                          position: 'relative', display: 'flex', alignItems: 'center',
+                         gap: collapsed ? 0 : 11,
                         justifyContent: collapsed ? 'center' : 'flex-start',
                         padding: collapsed ? '10px' : '10px 12px',
                         borderRadius: 12,
-                        border: `1px solid ${isActive ? 'rgba(255,77,0,0.3)' : 'transparent'}`,
+                          border: `1px solid ${isActive ? 'rgba(255,77,0,0.3)' : 'transparent'}`,
                         background: isActive ? 'rgba(255,77,0,0.1)' : 'transparent',
                         color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
                         textDecoration: 'none', fontSize: 13.5, fontWeight: isActive ? 600 : 400,
                         transition: 'all 0.18s',
+
                     }}>
                         {isActive && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 18, borderRadius: '0 3px 3px 0', background: '#ff4d00', boxShadow: '0 0 8px #ff4d00' }} />}
                         <Icon width={17} height={17} style={{ flexShrink: 0 }} />
@@ -123,10 +133,13 @@ function NavList({ navItems, activeId, collapsed = false, onClose }) {
     );
 }
 
-// ─── Logout button ────────────────────────────────────────────────────────────
+
+
 function LogoutButton({ collapsed, onLogout }) {
+
     return (
         <div style={{ padding: collapsed ? '12px 8px' : '12px 12px', paddingBottom: 20 }}>
+
             <button onClick={onLogout} title={collapsed ? 'Sign Out' : undefined} style={{
                 width: '100%', display: 'flex', alignItems: 'center',
                 justifyContent: collapsed ? 'center' : 'flex-start', gap: 10,
@@ -139,17 +152,18 @@ function LogoutButton({ collapsed, onLogout }) {
                 {!collapsed && <span>Sign Out</span>}
             </button>
         </div>
-    );
+     );
 }
 
-// ─── Full sidebar content ─────────────────────────────────────────────────────
+
 function FullSidebarContent({ navItems, activeId, onToggle, onClose, onLogout, user, isMobile = false }) {
-    const accent = ROLE_ACCENT[user?.role] || ROLE_ACCENT.client;
+
+     const  accent = ROLE_ACCENT[user?.role] || ROLE_ACCENT.client;
     const initials = getInitials(user?.name);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            {/* Header — Logo + Brand */}
+            
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '0 14px',
@@ -163,22 +177,23 @@ function FullSidebarContent({ navItems, activeId, onToggle, onClose, onLogout, u
                         alt="Taskly logo"
                         style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 17, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                      <span style={{ fontSize: 17, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
                         Task<span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>ly</span>
                     </span>
                 </Link>
+
                 <button onClick={onToggle} style={{
                     width: 30, height: 30, borderRadius: 8, border: 'none',
                     background: 'rgba(255,255,255,0.06)', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'rgba(255,255,255,0.5)',
-                }} aria-label={isMobile ? 'Close' : 'Collapse'}>
+                  }} aria-label={isMobile ? 'Close' : 'Collapse'}>
                     {isMobile ? <Xmark width={16} height={16} /> : <LayoutSideContentLeft width={16} height={16} />}
                 </button>
             </div>
 
-            {/* User card */}
-            <div style={{ padding: '12px 12px 6px' }}>
+            
+              <div style={{ padding: '12px 12px 6px' }}>
                 <div style={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', padding: '11px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{
@@ -187,7 +202,7 @@ function FullSidebarContent({ navItems, activeId, onToggle, onClose, onLogout, u
                             background: user?.image ? 'transparent' : 'linear-gradient(135deg, #ff4d00, #cc3d00)',
                             fontSize: 12, fontWeight: 800, color: '#fff',
                         }}>
-                            {user?.image ? <img src={user.image} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
+                              {user?.image ? <img src={user.image} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
                         </div>
                         <div style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'User'}</div>
@@ -195,34 +210,42 @@ function FullSidebarContent({ navItems, activeId, onToggle, onClose, onLogout, u
                         </div>
                     </div>
                     <div style={{ marginTop: 9 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 99, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'monospace', color: accent.color, background: accent.glow, border: '1px solid rgba(255,77,0,0.28)' }}>
+                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 99, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'monospace', color: accent.color, background: accent.glow, border: '1px solid rgba(255,77,0,0.28)' }}>
+
                             <span style={{ width: 5, height: 5, borderRadius: '50%', background: accent.color, boxShadow: `0 0 5px ${accent.color}`, display: 'inline-block' }} />
                             {accent.label}
                         </span>
                     </div>
                 </div>
+
             </div>
 
             <NavList navItems={navItems} activeId={activeId} onClose={onClose} />
 
-            {/* Help card */}
+            
             <div style={{ padding: '0 12px 8px' }}>
-                <div style={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.07)', background: 'linear-gradient(135deg, rgba(255,77,0,0.07) 0%, transparent 100%)', padding: '11px' }}>
+                   <div style={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.07)', background: 'linear-gradient(135deg, rgba(255,77,0,0.07) 0%, transparent 100%)', padding: '11px' }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 3 }}>Need help?</div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', lineHeight: 1.6 }}>Contact support or visit our docs anytime.</div>
+
                 </div>
             </div>
 
             <LogoutButton collapsed={false} onLogout={onLogout} />
+
         </div>
-    );
+
+     );
+
 }
 
-// ─── Collapsed rail ───────────────────────────────────────────────────────────
+
 function CollapsedRail({ navItems, activeId, onToggle, onLogout, user }) {
-    const initials = getInitials(user?.name);
+    const  initials = getInitials(user?.name);
     return (
+
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+
             <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.07)', width: '100%', flexShrink: 0, flexDirection: 'column', gap: 6, padding: '8px 0' }}>
                 <Link href="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
                     <img
@@ -231,6 +254,7 @@ function CollapsedRail({ navItems, activeId, onToggle, onLogout, user }) {
                         style={{ width: 28, height: 28, borderRadius: 7, objectFit: 'cover' }}
                     />
                 </Link>
+
                 <button onClick={onToggle} style={{ width: 24, height: 20, borderRadius: 6, border: 'none', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)' }}>
                     <LayoutSideContentLeft width={13} height={13} />
                 </button>
@@ -247,15 +271,15 @@ function CollapsedRail({ navItems, activeId, onToggle, onLogout, user }) {
     );
 }
 
-// ─── Main DashboardLayout ─────────────────────────────────────────────────────
+
 export default function DashboardSidebar({ children }) {
     const { data: session, isPending } = useSession();
-    const user = session?.user;
+    const  user = session?.user;
     const pathname = usePathname();
-    const router = useRouter();
+    const  router = useRouter();
 
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [collapsed, setCollapsed] = useState(false);
+       const  [mobileOpen, setMobileOpen] = useState(false);
+    const  [collapsed, setCollapsed] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
 
     async function handleLogout() {
@@ -266,27 +290,29 @@ export default function DashboardSidebar({ children }) {
 
     useEffect(() => { setMobileOpen(false); }, [pathname]);
 
-    if (isPending || loggingOut) return <LoadingSkeleton />;
+      if (isPending || loggingOut) return   <LoadingSkeleton />;
     if (!user) { router.replace('/auth/login'); return <LoadingSkeleton />; }
 
-    // If the user account has been blocked, log out and send them to login screen
+    
     if (user.isBlocked) {
         handleLogout();
         return <LoadingSkeleton />;
     }
 
-    // ── Role guard → new futuristic UnauthorizedPage ──────────────────────────
+    
     if (!ALLOWED_ROLES.includes(user.role)) return <UnauthorizedPage role={user.role} />;
-    const routeRole = pathname?.split('/')[2];
+    const  routeRole = pathname?.split('/')[2];
     if (routeRole && ALLOWED_ROLES.includes(routeRole) && routeRole !== user.role) {
         return <UnauthorizedPage role={user.role} />;
     }
+
 
     const navItems = NAV_MAP[user.role] || NAV_MAP.client;
     const activeId = routeToNavId(pathname, navItems);
 
     return (
         <>
+
             <style>{`
                 *, *::before, *::after { box-sizing: border-box; }
                 body { margin: 0; }
@@ -309,10 +335,12 @@ export default function DashboardSidebar({ children }) {
                     position: relative;
                 }
                 @media (max-width: 640px) {
+
                     .dash-page-container {
                         padding: 20px 14px 40px;
                     }
                 }
+
 
                 .dash-wrapper {
                     display: flex;
@@ -321,14 +349,14 @@ export default function DashboardSidebar({ children }) {
                     background: #080808;
                     font-family: system-ui, -apple-system, sans-serif;
                     position: relative;
-                }
+                  }
 
                 .desktop-sidebar {
                     position: sticky;
-                    top: ${NAVBAR_HEIGHT}px;
+                      top: ${NAVBAR_HEIGHT}px;
                     height: calc(100vh - ${NAVBAR_HEIGHT}px);
-                    flex-shrink: 0;
-                    background: #0c0c0c;
+                       flex-shrink: 0;
+                      background: #0c0c0c;
                     border-right: 1px solid rgba(255,255,255,0.08);
                     overflow-x: hidden;
                     overflow-y: auto;
@@ -347,6 +375,7 @@ export default function DashboardSidebar({ children }) {
                     background: #0c0c0c;
                     border-bottom: 1px solid rgba(255,255,255,0.08);
                     align-items: center;
+
                     gap: 12px;
                 }
 
@@ -366,9 +395,9 @@ export default function DashboardSidebar({ children }) {
 
             <div className="dash-wrapper">
 
-                {/* ── Mobile topbar ── */}
+                
                 <div className="dash-mobile-topbar">
-                    <button
+                       <button
                         onClick={() => setMobileOpen(true)}
                         aria-label="Open sidebar"
                         style={{
@@ -391,47 +420,51 @@ export default function DashboardSidebar({ children }) {
                     </span>
                 </div>
 
-                {/* ── Mobile backdrop ── */}
+                
                 <AnimatePresence>
+
                     {mobileOpen && (
                         <motion.div
                             key="overlay"
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             onClick={() => setMobileOpen(false)}
                             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 40 }}
                         />
                     )}
                 </AnimatePresence>
 
-                {/* ── Mobile drawer ── */}
+                
                 <AnimatePresence>
                     {mobileOpen && (
                         <motion.aside
                             key="drawer"
                             initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
                             transition={{ type: 'tween', duration: 0.22 }}
-                            style={{
+                              style={{
+
                                 position: 'fixed',
+
                                 top: NAVBAR_HEIGHT,
                                 left: 0, zIndex: 50,
                                 width: 272,
                                 height: `calc(100dvh - ${NAVBAR_HEIGHT}px)`,
                                 background: '#0c0c0c',
-                                borderRight: '1px solid rgba(255,255,255,0.08)',
+                                   borderRight: '1px solid rgba(255,255,255,0.08)',
                                 overflowY: 'auto',
                             }}
                         >
                             <FullSidebarContent
-                                navItems={navItems} activeId={activeId}
+                                 navItems={navItems} activeId={activeId}
                                 onToggle={() => setMobileOpen(false)}
+
                                 onClose={() => setMobileOpen(false)}
                                 onLogout={handleLogout} user={user} isMobile
-                            />
+                              />
                         </motion.aside>
                     )}
                 </AnimatePresence>
 
-                {/* ── Desktop sidebar ── */}
+                
                 <motion.aside
                     className="desktop-sidebar"
                     animate={{ width: collapsed ? 64 : 264 }}
@@ -443,9 +476,10 @@ export default function DashboardSidebar({ children }) {
                     }
                 </motion.aside>
 
-                {/* ── Main content ── */}
+                
                 <main className="dash-main">{children}</main>
             </div>
+
         </>
     );
 }

@@ -8,19 +8,26 @@ import { motion } from 'framer-motion';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
+
 export default function FreelancerEarningsPage() {
+
     const { data: session, isPending: sessionPending } = useSession();
     const [earnings, setEarnings] = useState([]);
-    const [stats, setStats] = useState({ totalEarnings: 0, completedCount: 0 });
+    const  [stats, setStats] = useState({ totalEarnings: 0, completedCount: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Search and filters
+    
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState('date-desc'); // 'date-desc', 'date-asc', 'amount-desc', 'amount-asc'
+    const  [sortBy, setSortBy] = useState('date-desc'); 
+    const [currentPage, setCurrentPage] = useState(1);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, sortBy]);
 
     const fetchEarningsData = async () => {
-        if (!session?.user?.email) {
+          if (!session?.user?.email) {
             setLoading(false);
             return;
         }
@@ -28,9 +35,9 @@ export default function FreelancerEarningsPage() {
             setLoading(true);
             const email = session.user.email.toLowerCase().trim();
             
-            // Fetch proposals and tasks in parallel
+            
             const [propsRes, tasksRes] = await Promise.all([
-                fetch(`${BASE_URL}/api/proposals?email=${email}`),
+                 fetch(`${BASE_URL}/api/proposals?email=${email}`),
                 fetch(`${BASE_URL}/api/tasks`)
             ]);
             
@@ -48,6 +55,7 @@ export default function FreelancerEarningsPage() {
                 
                 for (const prop of acceptedProposals) {
                     const task = tasks.find(t => t._id === prop.taskId);
+
                     if (task && task.status?.toLowerCase() === 'completed') {
                         const amount = Number(prop.proposedBudget) || Number(task.budget) || 0;
                         earningsList.push({
@@ -57,13 +65,14 @@ export default function FreelancerEarningsPage() {
                             amountMade: amount,
                             completionDate: task.completedAt || task.updatedAt || prop.submittedAt || new Date()
                         });
+
                         total += amount;
                     }
                 }
                 
-                earningsList.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+                 earningsList.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
                 
-                setEarnings(earningsList);
+                 setEarnings(earningsList);
                 setStats({
                     totalEarnings: total,
                     completedCount: earningsList.length
@@ -72,18 +81,21 @@ export default function FreelancerEarningsPage() {
             } else {
                 throw new Error('Failed to retrieve proposals or tasks from server.');
             }
-        } catch (err) {
+           } catch (err) {
             console.error("Error fetching earnings data:", err);
             setError(err.message || 'Error loading earnings statement. Please try again.');
+
         } finally {
             setLoading(false);
         }
+
     };
 
     useEffect(() => {
         if (sessionPending) return;
         fetchEarningsData();
     }, [session, sessionPending]);
+
 
     if (sessionPending || loading) {
         return (
@@ -96,29 +108,35 @@ export default function FreelancerEarningsPage() {
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', letterSpacing: '0.1em' }}>
                     RETRIEVING STATEMENT
                 </span>
+
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
             </div>
         );
+
     }
 
     if (!session) {
         return (
             <div style={{ padding: '60px 24px', textAlign: 'center', color: '#fff' }}>
+
                 <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Access Denied</h3>
-                <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>Please sign in to view your earnings statement.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>Please sign in to view your earnings statement.</p>
                 <Link href="/auth/login" style={{
                     padding: '10px 20px', borderRadius: 8, background: '#ff4d00', color: '#fff', fontWeight: 600, textDecoration: 'none'
                 }}>Sign In</Link>
-            </div>
+               </div>
         );
     }
 
-    // Filter and Sort earnings
-    const filteredEarnings = earnings
+    
+      const  filteredEarnings = earnings
         .filter(item => {
             const query = searchQuery.toLowerCase();
+
             return (
                 (item.taskTitle || '').toLowerCase().includes(query) ||
+
                 (item.clientName || '').toLowerCase().includes(query)
             );
         })
@@ -131,12 +149,17 @@ export default function FreelancerEarningsPage() {
             }
             if (sortBy === 'amount-desc') {
                 return b.amountMade - a.amountMade;
+
             }
             if (sortBy === 'amount-asc') {
                 return a.amountMade - b.amountMade;
             }
-            return 0;
+            return   0;
         });
+
+    const limit = 10;
+    const totalPages = Math.ceil(filteredEarnings.length / limit) || 1;
+    const paginatedEarnings = filteredEarnings.slice((currentPage - 1) * limit, currentPage * limit);
 
     const averageEarning = stats.completedCount > 0 ? Math.round(stats.totalEarnings / stats.completedCount) : 0;
 
@@ -151,7 +174,7 @@ export default function FreelancerEarningsPage() {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
-        });
+          });
     };
 
     return (
@@ -166,6 +189,7 @@ export default function FreelancerEarningsPage() {
                 }
                 .earnings-card:hover {
                     border-color: rgba(255,77,0,0.3); transform: translateY(-2px);
+
                 }
 
                 .earnings-input {
@@ -193,22 +217,27 @@ export default function FreelancerEarningsPage() {
                 
                 .earnings-table {
                     width: 100%; border-collapse: collapse; text-align: left;
+
                     font-size: 13.5px;
                 }
                 
                 .earnings-table th {
+
                     padding: 14px 18px;
                     font-size: 10.5px; font-weight: 700;
                     letter-spacing: 0.12em; text-transform: uppercase;
-                    color: rgba(255,255,255,0.35);
+                       color: rgba(255,255,255,0.35);
                     border-bottom: 1px solid rgba(255,255,255,0.07);
                     font-family: monospace;
+
                 }
 
                 .earnings-table td {
+
                     padding: 16px 18px;
                     border-bottom: 1px solid rgba(255,255,255,0.05);
-                    color: rgba(255,255,255,0.8);
+                      color: rgba(255,255,255,0.8);
+
                 }
 
                 .earnings-table tr:last-child td {
@@ -216,12 +245,15 @@ export default function FreelancerEarningsPage() {
                 }
 
                 .earnings-table tr {
+
                     transition: background 0.18s;
                 }
 
                 .earnings-table tr:hover td {
-                    background: rgba(255,77,0,0.015);
-                    color: #fff;
+                       background: rgba(255,77,0,0.015);
+
+                     color: #fff;
+
                 }
                 @media(max-width: 640px) {
                     .earnings-filter-row { flex-direction: column !important; align-items: stretch !important; }
@@ -229,15 +261,17 @@ export default function FreelancerEarningsPage() {
                 }
             `}</style>
 
-            {/* Ambient Glow */}
+            
             <div style={{
                 pointerEvents: 'none', position: 'fixed', top: 0, left: '50%',
                 transform: 'translateX(-50%)', width: '80vw', height: '40vh', zIndex: 0,
                 background: 'radial-gradient(ellipse at 50% 0%,rgba(255,77,0,0.06) 0%,transparent 70%)',
+
                 filter: 'blur(40px)',
             }} />
 
-            {/* Header */}
+            
+
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -246,11 +280,12 @@ export default function FreelancerEarningsPage() {
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Link href="/dashboard/freelancer" style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+
+                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         width: 32, height: 32, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)',
                         background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.5)',
                         transition: 'all 0.15s', cursor: 'pointer', textDecoration: 'none'
-                    }}
+                     }}
                         onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; }}
                         onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                     >
@@ -261,8 +296,10 @@ export default function FreelancerEarningsPage() {
                     </span>
                 </div>
                 <div>
+
                     <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 6px' }}>
                         Earnings & Payouts
+
                     </h1>
                     <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
                         Review your completed contracts, client details, and revenue logs.
@@ -270,17 +307,17 @@ export default function FreelancerEarningsPage() {
                 </div>
             </motion.div>
 
-            {error && (
+               {error && (
                 <div style={{ padding: '16px 20px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', fontSize: 13.5, marginBottom: 24, position: 'relative', zIndex: 1 }}>
                     {error}
                 </div>
             )}
 
-            {/* Quick Metrics */}
+            
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 18, marginBottom: 40, position: 'relative', zIndex: 1 }}>
                 {cards.map((c, idx) => {
-                    const Icon = c.icon;
-                    return (
+                    const  Icon = c.icon;
+                      return (
                         <motion.div
                             key={idx}
                             className="earnings-card"
@@ -295,13 +332,16 @@ export default function FreelancerEarningsPage() {
                                 </span>
                                 <div style={{ width: 36, height: 36, borderRadius: 10, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <Icon width={16} height={16} style={{ color: c.color }} />
+
                                 </div>
-                            </div>
+                               </div>
+
                             <div>
                                 <div style={{ fontSize: 24, fontWeight: 900, color: c.color, marginBottom: 2, fontFamily: "'JetBrains Mono',monospace" }}>
                                     {c.value}
                                 </div>
                                 <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)' }}>
+
                                     {c.desc}
                                 </div>
                             </div>
@@ -310,9 +350,9 @@ export default function FreelancerEarningsPage() {
                 })}
             </div>
 
-            {/* Table & Filter Section */}
+            
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 18 }}>
-                {/* Filters */}
+                
                 <div
                     className="earnings-filter-row"
                     style={{
@@ -321,7 +361,7 @@ export default function FreelancerEarningsPage() {
                         borderRadius: 16, padding: 16
                     }}
                 >
-                    {/* Search */}
+                    
                     <div style={{ flex: 1, minWidth: 240, position: 'relative' }}>
                         <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}>
                             <Magnifier width={14} height={14} />
@@ -329,28 +369,31 @@ export default function FreelancerEarningsPage() {
                         <input
                             type="text"
                             placeholder="Filter by task title or client name…"
+
                             className="earnings-input"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             style={{ paddingLeft: 38, width: '100%' }}
                         />
+
                     </div>
 
-                    {/* Sort */}
+                    
                     <select
                         className="earnings-input"
+
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
                         style={{ minWidth: 180 }}
-                    >
-                        <option value="date-desc">Newest Finished</option>
+                      >
+                          <option value="date-desc">Newest Finished</option>
                         <option value="date-asc">Oldest Finished</option>
                         <option value="amount-desc">Highest Earning</option>
-                        <option value="amount-asc">Lowest Earning</option>
-                    </select>
-                </div>
+                          <option value="amount-asc">Lowest Earning</option>
+                     </select>
+                   </div>
 
-                {/* Earnings List */}
+                
                 <div className="table-container">
                     {filteredEarnings.length === 0 ? (
                         <div style={{ padding: '60px 24px', textAlign: 'center', color: 'rgba(255,255,255,0.35)' }}>
@@ -364,6 +407,7 @@ export default function FreelancerEarningsPage() {
                         </div>
                     ) : (
                         <table className="earnings-table">
+
                             <thead>
                                 <tr>
                                     <th>Task Title</th>
@@ -372,8 +416,9 @@ export default function FreelancerEarningsPage() {
                                     <th style={{ textAlign: 'right' }}>Completion Date</th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                {filteredEarnings.map((item, idx) => (
+                                {paginatedEarnings.map((item, idx) => (
                                     <motion.tr
                                         key={item._id || idx}
                                         initial={{ opacity: 0, y: 12 }}
@@ -388,7 +433,7 @@ export default function FreelancerEarningsPage() {
                                                 <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#ff7300' }}>
                                                     {(item.clientName || 'C').charAt(0).toUpperCase()}
                                                 </div>
-                                                {item.clientName}
+                                                  {item.clientName}
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'right', fontWeight: 800, color: '#10b981', fontFamily: "'JetBrains Mono',monospace" }}>
@@ -400,7 +445,57 @@ export default function FreelancerEarningsPage() {
                                     </motion.tr>
                                 ))}
                             </tbody>
+
                         </table>
+                    )}
+                    {totalPages > 1 && (
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 16,
+                            padding: '16px 24px',
+                            borderTop: '1px solid rgba(255,255,255,0.06)',
+                            background: 'rgba(255,255,255,0.01)',
+                        }}>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                style={{
+                                    padding: '6px 12px',
+                                    borderRadius: 8,
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    background: currentPage === 1 ? 'transparent' : 'rgba(255,77,0,0.08)',
+                                    color: currentPage === 1 ? 'rgba(255,255,255,0.25)' : '#ff4d00',
+                                    fontSize: 12.5,
+                                    fontWeight: 600,
+                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                Previous
+                            </button>
+                            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                    padding: '6px 12px',
+                                    borderRadius: 8,
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    background: currentPage === totalPages ? 'transparent' : 'rgba(255,77,0,0.08)',
+                                    color: currentPage === totalPages ? 'rgba(255,255,255,0.25)' : '#ff4d00',
+                                    fontSize: 12.5,
+                                    fontWeight: 600,
+                                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                Next
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

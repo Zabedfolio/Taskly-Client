@@ -4,29 +4,31 @@ import { useEffect, useState } from 'react';
 import StarRating from './StarRating';
 import {
     getClientAverageRating,
-    getClientKey,
+      getClientKey,
     RATINGS_UPDATED_EVENT,
+
 } from '@/lib/clientRatings';
 import { fetchClientRatingStats } from '@/lib/api/freelancer/rateClient';
 
 
-export default function ClientRatingBadge({ clientId, clientEmail, clientName, size = 'sm' }) {
+export default function  ClientRatingBadge({ clientId, clientEmail, clientName, size = 'sm' }) {
     const [stats, setStats] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
         const key = getClientKey({ clientId, clientEmail, clientName });
 
-        async function load() {
+        async function  load() {
             const apiStats = clientId ? await fetchClientRatingStats(clientId) : null;
-            if (cancelled) return;
+               if (cancelled) return;
 
             if (apiStats) {
+
                 setStats(apiStats);
                 return;
             }
 
-            const localStats = getClientAverageRating(key);
+             const localStats = getClientAverageRating(key);
             setStats(localStats);
         }
 
@@ -35,6 +37,7 @@ export default function ClientRatingBadge({ clientId, clientEmail, clientName, s
         function handleUpdate() {
             load();
         }
+
 
         window.addEventListener(RATINGS_UPDATED_EVENT, handleUpdate);
         return () => {
@@ -45,7 +48,7 @@ export default function ClientRatingBadge({ clientId, clientEmail, clientName, s
 
     if (!stats) return null;
 
-    return (
+     return (
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <StarRating value={Math.round(stats.average)} readOnly size={size} />
             <span style={{
@@ -54,8 +57,10 @@ export default function ClientRatingBadge({ clientId, clientEmail, clientName, s
                 color: 'rgba(255,128,64,0.9)',
                 fontFamily: "'JetBrains Mono', monospace",
             }}>
+
                 {stats.average.toFixed(1)} ({stats.count})
             </span>
         </div>
     );
+
 }

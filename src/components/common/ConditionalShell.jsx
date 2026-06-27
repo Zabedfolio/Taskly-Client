@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 
-// Routes that should render with NO Navbar or Footer
+
 const BARE_ROUTES = ['/payment-success', '/dashboard'];
 
 export default function ConditionalShell({ children }) {
@@ -20,7 +20,8 @@ export default function ConditionalShell({ children }) {
     }
 
     return (
-        <>
+          <>
+
             <Navbar />
             {children}
             <Footer />

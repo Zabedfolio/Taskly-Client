@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import toast from 'react-hot-toast';
+
 import { Briefcase } from '@gravity-ui/icons';
 import { createTask } from '@/lib/api/client/newTasks';
 
-// ─── Categories ───────────────────────────────────────────────────────────────
+
 const CATEGORIES = [
     'Web Development',
     'Mobile Development',
@@ -23,7 +24,7 @@ const CATEGORIES = [
     'Other',
 ];
 
-// ─── Reusable field wrapper ───────────────────────────────────────────────────
+
 function Field({ label, hint, required, children }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -33,7 +34,7 @@ function Field({ label, hint, required, children }) {
                     textTransform: 'uppercase', fontFamily: 'monospace',
                     color: 'rgba(255,255,255,0.45)',
                 }}>
-                    {label}
+                      {label}
                     {required && <span style={{ color: '#ff4d00', marginLeft: 3 }}>*</span>}
                 </label>
                 {hint && (
@@ -47,10 +48,10 @@ function Field({ label, hint, required, children }) {
     );
 }
 
-// ─── Shared input style factory ───────────────────────────────────────────────
+
 function inputStyle(focused) {
     return {
-        width: '100%',
+           width: '100%',
         padding: '11px 14px',
         borderRadius: 10,
         border: `1px solid ${focused ? '#ff4d00' : 'rgba(255,255,255,0.09)'}`,
@@ -61,18 +62,20 @@ function inputStyle(focused) {
         transition: 'all 0.2s',
         boxShadow: focused ? '0 0 0 3px rgba(255,77,0,0.10)' : 'none',
         boxSizing: 'border-box',
-        fontFamily: 'system-ui, sans-serif',
+         fontFamily: 'system-ui, sans-serif',
     };
 }
 
-// ─── Focusable text input ─────────────────────────────────────────────────────
+
 function TextInput({ name, placeholder, required, type = 'text', ...rest }) {
     const [focused, setFocused] = useState(false);
     return (
         <input
             name={name}
             type={type}
-            placeholder={placeholder}
+
+               placeholder={placeholder}
+
             required={required}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -82,14 +85,17 @@ function TextInput({ name, placeholder, required, type = 'text', ...rest }) {
     );
 }
 
-// ─── Focusable textarea ───────────────────────────────────────────────────────
+
 function TextArea({ name, placeholder, required, rows = 5 }) {
     const [focused, setFocused] = useState(false);
-    return (
+     return   (
+
         <textarea
             name={name}
+
             placeholder={placeholder}
             required={required}
+
             rows={rows}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -103,38 +109,40 @@ function TextArea({ name, placeholder, required, rows = 5 }) {
     );
 }
 
-// ─── Focusable select ─────────────────────────────────────────────────────────
+
 function Select({ name, required, children }) {
-    const [focused, setFocused] = useState(false);
-    return (
+       const  [focused, setFocused] = useState(false);
+
+     return (
         <select
             name={name}
-            required={required}
+             required={required}
             onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
+             onBlur={() => setFocused(false)}
             style={{
                 ...inputStyle(focused),
                 appearance: 'none',
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.35)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'right 14px center',
-                paddingRight: 36,
-                cursor: 'pointer',
+                  paddingRight: 36,
+                   cursor: 'pointer',
             }}
         >
+
             {children}
         </select>
     );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function ClientPostTask() {
     const { data: session } = useSession();
     const router = useRouter();
 
     const [loading, setLoading] = useState(false);
 
-    // ── Form submit ────────────────────────────────────────────────────────────
+    
 
 
     async function handleSubmit(e) {
@@ -146,16 +154,19 @@ export default function ClientPostTask() {
         const title = formData.get('title')?.trim();
         const category = formData.get('category');
         const description = formData.get('description')?.trim();
-        const budget = formData.get('budget');
+        const  budget = formData.get('budget');
+
         const deadline = formData.get('deadline');
 
-        // ── Validation ──
+        
         if (!title || title.length < 5) {
             toast.error('Task title must be at least 5 characters.');
             setLoading(false);
             return;
+
         }
         if (!category) {
+
             toast.error('Please select a category.');
             setLoading(false);
             return;
@@ -171,6 +182,7 @@ export default function ClientPostTask() {
             return;
         }
         if (!deadline) {
+
             toast.error('Please set a deadline.');
             setLoading(false);
             return;
@@ -181,7 +193,7 @@ export default function ClientPostTask() {
             return;
         }
 
-        // ── Prepare Data ──
+        
         const taskData = {
             title,
             category,
@@ -189,7 +201,7 @@ export default function ClientPostTask() {
             budget: Number(budget),
             deadline,
 
-            // 🔥 attach client info from session
+            
             clientId: session?.user?.id,
             clientName: session?.user?.name,
             clientEmail: session?.user?.email,
@@ -203,13 +215,13 @@ export default function ClientPostTask() {
         }
 
         try {
-            const result = await createTask(taskData);
+              const result = await createTask(taskData);
 
             console.log(result);
 
             if (result.insertedId) {
-                toast.success('Task created successfully!');
-                e.target.reset(); // clear form
+                   toast.success('Task created successfully!');
+                e.target.reset(); 
             } else {
                 toast.error('Failed to create task.');
             }
@@ -222,10 +234,10 @@ export default function ClientPostTask() {
         setLoading(false);
     }
 
-    // ── Today's date for min deadline ──────────────────────────────────────────
-    const todayISO = new Date().toISOString().split('T')[0];
+    
+     const  todayISO = new Date().toISOString().split('T')[0];
 
-    return (
+    return   (
         <>
 
 
@@ -236,8 +248,9 @@ export default function ClientPostTask() {
                 input[type="date"]::-webkit-calendar-picker-indicator {
                     filter: invert(0.5);
                     cursor: pointer;
-                }
+                 }
                 .post-submit:hover:not(:disabled) {
+
                     box-shadow: 0 0 28px rgba(255,77,0,0.45) !important;
                     transform: translateY(-1px);
                 }
@@ -247,6 +260,7 @@ export default function ClientPostTask() {
                      margin: 0 auto;
                      padding: 40px 24px 80px;
                      font-family: system-ui, -apple-system, sans-serif;
+
                      box-sizing: border-box;
                  }
                  @media (max-width: 640px) {
@@ -258,10 +272,10 @@ export default function ClientPostTask() {
 
             <div className="post-task-container">
 
-                {/* ── Page header ── */}
+                {}
                 <div style={{ marginBottom: 36 }}>
                     <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 7,
+                           display: 'inline-flex', alignItems: 'center', gap: 7,
                         padding: '4px 11px', borderRadius: 99, marginBottom: 14,
                         background: 'rgba(255,77,0,0.08)',
                         border: '1px solid rgba(255,77,0,0.22)',
@@ -277,8 +291,8 @@ export default function ClientPostTask() {
                     </div>
                     <h1 style={{
                         fontSize: 26, fontWeight: 900, color: '#fff',
-                        letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 8px',
-                    }}>
+                           letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 8px',
+                       }}>
                         Post a task
                     </h1>
                     <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.6 }}>
@@ -286,7 +300,7 @@ export default function ClientPostTask() {
                     </p>
                 </div>
 
-                {/* ── Form ── */}
+                {}
                 <form onSubmit={handleSubmit} noValidate>
                     <div style={{
                         background: 'rgba(255,255,255,0.025)',
@@ -298,9 +312,11 @@ export default function ClientPostTask() {
                         gap: 22,
                     }}>
 
-                        {/* Title */}
+                        {}
                         <Field label="Task Title" required>
+
                             <TextInput
+
                                 name="title"
                                 placeholder="e.g. Build a landing page for my SaaS product"
                                 required
@@ -308,23 +324,26 @@ export default function ClientPostTask() {
                             />
                         </Field>
 
-                        {/* Category */}
+                        {}
                         <Field label="Category" required>
                             <Select name="category" required>
                                 <option value="">Select a category…</option>
-                                {CATEGORIES.map(c => (
+
+                                 {CATEGORIES.map(c => (
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </Select>
                         </Field>
 
-                        {/* Description */}
+                        {}
+
                         <Field
                             label="Description"
+
                             required
-                            hint="Min. 20 characters"
+                             hint="Min. 20 characters"
                         >
-                            <TextArea
+                              <TextArea
                                 name="description"
                                 placeholder="Describe the task in detail — what you need, any requirements, preferred tools or skills, deliverables, etc."
                                 required
@@ -332,15 +351,16 @@ export default function ClientPostTask() {
                             />
                         </Field>
 
-                        {/* Budget + Deadline — side by side */}
+                        {}
                         <div style={{
                             display: 'grid',
                             gridTemplateColumns: '1fr 1fr',
+
                             gap: 16,
                         }}
                             className="post-grid"
                         >
-                            {/* Budget */}
+                            {}
                             <Field label="Budget" required hint="USD">
                                 <div style={{ position: 'relative' }}>
                                     <span style={{
@@ -349,9 +369,11 @@ export default function ClientPostTask() {
                                         fontSize: 14, color: 'rgba(255,255,255,0.3)',
                                         pointerEvents: 'none', userSelect: 'none',
                                     }}>
-                                        $
+
+                                         $
                                     </span>
                                     <TextInput
+
                                         name="budget"
                                         type="number"
                                         placeholder="250"
@@ -361,25 +383,28 @@ export default function ClientPostTask() {
                                         style={{ paddingLeft: 26 }}
                                     />
                                 </div>
+
                             </Field>
 
-                            {/* Deadline */}
+                            {}
+
                             <Field label="Deadline" required>
                                 <TextInput
                                     name="deadline"
-                                    type="date"
+                                     type="date"
                                     required
                                     min={todayISO}
                                 />
                             </Field>
                         </div>
 
-                        {/* Divider */}
+                        {}
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
 
-                        {/* Submit */}
+                        {}
                         <button
                             type="submit"
+
                             disabled={loading}
                             className="post-submit"
                             style={{
@@ -392,9 +417,11 @@ export default function ClientPostTask() {
                                     ? 'rgba(255,77,0,0.4)'
                                     : 'linear-gradient(135deg, #ff4d00 0%, #cc3d00 100%)',
                                 boxShadow: loading ? 'none' : '0 0 20px rgba(255,77,0,0.28)',
+
                                 color: '#fff',
                                 fontSize: 14.5, fontWeight: 700,
                                 cursor: loading ? 'not-allowed' : 'pointer',
+
                                 transition: 'all 0.2s',
                                 letterSpacing: '-0.01em',
                             }}
@@ -405,13 +432,13 @@ export default function ClientPostTask() {
                                         style={{ animation: 'spin 0.75s linear infinite', flexShrink: 0 }}>
                                         <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.25)" strokeWidth="2" />
                                         <path d="M8 2a6 6 0 0 1 6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-                                    </svg>
-                                    Publishing…
+                                     </svg>
+                                       Publishing…
                                 </>
-                            ) : (
+                             ) : (
                                 <>
                                     <Briefcase width={16} height={16} />
-                                    Publish Task
+                                       Publish Task
                                 </>
                             )}
                         </button>
@@ -419,13 +446,14 @@ export default function ClientPostTask() {
                     </div>
                 </form>
 
-                {/* ── Responsive grid collapse ── */}
+                
                 <style>{`
                     @media (max-width: 520px) {
-                        .post-grid { grid-template-columns: 1fr !important; }
+                          .post-grid { grid-template-columns: 1fr !important; }
                     }
                 `}</style>
+
             </div>
-        </>
+          </>
     );
 }

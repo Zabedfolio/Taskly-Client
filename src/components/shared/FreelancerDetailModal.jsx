@@ -14,19 +14,22 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
         const fetchData = async () => {
             setLoading(true);
             try {
-                const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+                  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
                 const fRes = await fetch(`${baseUrl}/api/freelancers/${encodeURIComponent(freelancerEmail)}`);
                 if (!fRes.ok) throw new Error('Failed to fetch freelancer details');
-                const fData = await fRes.json();
-                if (fData) {
+
+                const  fData = await fRes.json();
+                 if (fData) {
                     let skills = fData.skills ?? [];
                     if (typeof skills === 'string') {
-                        skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+                           skills = skills.split(',').map(s => s.trim()).filter(Boolean);
                     } else if (!Array.isArray(skills)) {
-                        skills = [];
+                          skills = [];
                     }
-                    fData.skills = skills;
-                }
+
+                       fData.skills = skills;
+
+                   }
                 setFreelancer(fData);
 
                 const rRes = await fetch(`${baseUrl}/api/freelancer-ratings?freelancerEmail=${encodeURIComponent(freelancerEmail)}`);
@@ -41,12 +44,13 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
             }
         };
 
+
         fetchData();
     }, [open, freelancerEmail]);
 
     useEffect(() => {
         if (!open) return;
-        const handler = (e) => { if (e.key === 'Escape') onClose(); };
+        const  handler = (e) => { if (e.key === 'Escape') onClose(); };
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
     }, [open, onClose]);
@@ -55,7 +59,8 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
 
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
-        const hasHalf = rating % 1 >= 0.5;
+          const hasHalf = rating % 1 >= 0.5;
+
         return (
             <div style={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'center' }}>
                 {[...Array(5)].map((_, i) => {
@@ -72,8 +77,10 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                             </defs>
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                         </svg>
+
                     );
-                })}
+                 })}
+
             </div>
         );
     };
@@ -98,11 +105,11 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                     width: 100%; max-width: 500px;
                     background: #090909;
                     border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 20px;
+                       border-radius: 20px;
                     box-shadow: 0 24px 64px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,77,0,0.04);
                     overflow: hidden;
                     animation: scaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-                    max-height: 85vh;
+                      max-height: 85vh;
                     position: relative;
                 }
 
@@ -110,14 +117,17 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                     position: absolute; top: 16px; right: 16px;
                     width: 28px; height: 28px; border-radius: 8px;
                     border: 1px solid rgba(255,255,255,0.08);
+
                     background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.4);
                     display: flex; align-items: center; justify-content: center;
                     cursor: pointer; transition: all 0.2s; font-size: 11px; z-index: 10;
                 }
                 
                 .fdm-close-btn:hover {
+
                     background: rgba(255,77,0,0.1); border-color: rgba(255,77,0,0.3); color: #fff;
                 }
+
 
                 .fdm-header {
                     padding: 28px 24px 20px;
@@ -129,7 +139,7 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
 
                 .fdm-body {
                     padding: 20px 24px 28px;
-                    overflow-y: auto;
+                      overflow-y: auto;
                     display: flex; flex-direction: column; gap: 20px;
                 }
 
@@ -143,14 +153,16 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                     display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
                 }
 
+
                 .fdm-stat-box {
                     padding: 12px 8px; border-radius: 12px;
-                    background: rgba(255,255,255,0.02);
+                      background: rgba(255,255,255,0.02);
+
                     border: 1px solid rgba(255,255,255,0.05);
                     text-align: center;
                 }
 
-                .fdm-review-card {
+                 .fdm-review-card {
                     padding: 14px 16px; border-radius: 12px;
                     background: rgba(255,255,255,0.015);
                     border: 1px solid rgba(255,255,255,0.04);
@@ -165,7 +177,7 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
 
             <div className="fdm-backdrop" onClick={onClose}>
                 <div className="fdm-container" onClick={e => e.stopPropagation()}>
-                    <button className="fdm-close-btn" onClick={onClose} aria-label="Close modal">
+                       <button className="fdm-close-btn" onClick={onClose} aria-label="Close modal">
                         ✕
                     </button>
 
@@ -174,26 +186,30 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                             <span style={{ width: 28, height: 28, border: '3px solid rgba(255,255,255,0.12)', borderTopColor: '#ff4d00', borderRadius: '50%', animation: 'spin 0.75s linear infinite', display: 'inline-block' }} />
                         </div>
                     ) : freelancer ? (
+
                         <>
-                            {/* Header */}
+                            
                             <div className="fdm-header">
-                                {/* Avatar */}
+                                
                                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                                    {freelancer.image ? (
+                                       {freelancer.image ? (
                                         <img 
                                             src={freelancer.image} 
                                             alt={freelancer.name} 
                                             style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff4d00', boxShadow: '0 0 16px rgba(255,77,0,0.15)' }}
                                         />
+
                                     ) : (
                                         <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #ff4d00, #b33600)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #ff4d00', color: '#fff', fontSize: 28, fontWeight: 800 }}>
                                             {freelancer.name.charAt(0).toUpperCase()}
                                         </div>
                                     )}
                                     {freelancer.isVerified && (
+
                                         <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#10b981', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #090909', fontSize: 10 }} title="Verified Freelancer">
                                             ✓
                                         </span>
+
                                     )}
                                 </div>
 
@@ -203,7 +219,7 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                                         {freelancer.emailVerified && (
                                             <span style={{ fontSize: 8, fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)', padding: '2px 5px', borderRadius: 4, textTransform: 'uppercase', fontFamily: 'monospace' }}>
                                                 Verified
-                                            </span>
+                                             </span>
                                         )}
                                     </div>
                                     <div style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>{freelancer.title}</div>
@@ -211,21 +227,21 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                                 </div>
                             </div>
 
-                            {/* Body */}
+                            
                             <div className="fdm-body" style={{ maxHeight: 'calc(85vh - 162px)', overflowY: 'auto' }}>
-                                {/* Bio */}
+                                
                                 {freelancer.bio && (
                                     <div>
                                         <h4 style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>
                                             Biography
                                         </h4>
-                                        <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
-                                            {freelancer.bio}
+                                           <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+                                              {freelancer.bio}
                                         </p>
                                     </div>
                                 )}
 
-                                {/* Skills */}
+                                
                                 {freelancer.skills && freelancer.skills.length > 0 && (
                                     <div>
                                         <h4 style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
@@ -241,8 +257,9 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                                     </div>
                                 )}
 
-                                {/* Stats Grid */}
-                                <div className="fdm-stats-grid">
+                                
+
+                                  <div className="fdm-stats-grid">
                                     <div className="fdm-stat-box">
                                         <div style={{ fontSize: 8.5, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
                                             Rating
@@ -262,9 +279,11 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                                             {ratingData.count ?? 0}
                                         </div>
                                         <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+
                                             {ratingData.count === 1 ? 'feedback' : 'feedbacks'}
                                         </span>
                                     </div>
+
                                     <div className="fdm-stat-box">
                                         <div style={{ fontSize: 8.5, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
                                             Jobs Done
@@ -272,15 +291,16 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                                         <div style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>
                                             {freelancer.completedJobs ?? 0}
                                         </div>
+
                                         <span style={{ fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
                                             contracts
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Reviews List */}
+                                
                                 <div>
-                                    <h4 style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
+                                     <h4 style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
                                         Client Reviews ({ratingData.reviews?.length || 0})
                                     </h4>
 
@@ -301,12 +321,13 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                                                             <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{rev.clientName}</div>
                                                             <div style={{ fontSize: 10, color: '#ff4d00', marginTop: 1, fontWeight: 600 }}>
                                                                 {rev.taskTitle}
-                                                            </div>
+                                                               </div>
                                                         </div>
                                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
                                                             <div style={{ display: 'flex', gap: 1.5 }}>
-                                                                {[...Array(5)].map((_, idx) => (
+                                                                 {[...Array(5)].map((_, idx) => (
                                                                     <svg key={idx} width="9" height="9" viewBox="0 0 24 24" fill={idx < rev.stars ? '#ff4d00' : 'rgba(255,255,255,0.08)'}>
+
                                                                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                                                                     </svg>
                                                                 ))}
@@ -314,19 +335,22 @@ export default function FreelancerDetailModal({ open, onClose, freelancerEmail }
                                                             <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.22)', fontFamily: 'monospace' }}>
                                                                 {new Date(rev.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                             </span>
-                                                        </div>
+                                                          </div>
+
                                                     </div>
                                                     {rev.review && (
                                                         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.45, margin: 0, paddingLeft: 6, borderLeft: '1.5px solid rgba(255,77,0,0.3)' }}>
                                                             "{rev.review}"
                                                         </p>
+
                                                     )}
                                                 </div>
                                             ))
-                                        )}
+                                          )}
                                     </div>
                                 </div>
                             </div>
+
                         </>
                     ) : (
                         <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '40px 24px' }}>

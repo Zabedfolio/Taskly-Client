@@ -1,7 +1,7 @@
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 
 const DashboardLayout = ({ children }) => {
-  return (
+  return   (
     
       <div>
         {children}

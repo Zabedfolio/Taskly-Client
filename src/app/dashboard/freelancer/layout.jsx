@@ -5,6 +5,7 @@ const FreelancerDashboardLayout = ({ children }) => {
     return (
         <DashboardSidebar>
             {children}
+
         </DashboardSidebar>
     );
 };

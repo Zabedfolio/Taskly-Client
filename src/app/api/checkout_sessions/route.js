@@ -4,13 +4,15 @@ import { headers } from 'next/headers'
 import { stripe } from '../../../lib/stripe'
 
 export async function POST() {
+
   try {
-    const headersList = await headers()
+     const headersList = await headers()
     const origin = headersList.get('origin')
 
-    // Create Checkout Sessions from body params.
-    const session = await stripe.checkout.sessions.create({
+    
+    const  session = await stripe.checkout.sessions.create({
       customer_email: 'customer@example.com',
+
       submit_type: 'donate',
       billing_address_collection: 'auto',
       shipping_address_collection: {
@@ -18,7 +20,7 @@ export async function POST() {
       },
       line_items: [
         {
-          // Provide the exact Price ID (for example, price_1234) of the product you want to sell
+          
           price: '{{PRICE_ID}}',
           quantity: 1,
         },

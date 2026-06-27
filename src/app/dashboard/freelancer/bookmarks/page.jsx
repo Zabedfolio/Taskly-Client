@@ -4,23 +4,24 @@ import { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { useBookmarks } from '@/contexts/BookmarkContext';
 import TaskDetailModal from '@/components/shared/TaskDetailModal';
+
 import Link from 'next/link';
 import { ArrowLeft } from '@gravity-ui/icons';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+const  BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 async function fetchTask(taskId) {
     const res = await fetch(`${BASE_URL}/api/tasks/${taskId}`);
-    if (!res.ok) return null;
+     if (!res.ok) return null;
     return res.json();
 }
 
-export default function BookmarksPage() {
+export default function  BookmarksPage() {
     const { data: session } = useSession();
     const { bookmarks, toggleBookmark } = useBookmarks();
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedTask, setSelectedTask] = useState(null);
+    const  [selectedTask, setSelectedTask] = useState(null);
 
     useEffect(() => {
         if (bookmarks.length === 0) {
@@ -30,14 +31,15 @@ export default function BookmarksPage() {
         }
         setLoading(true);
         Promise.all(bookmarks.map(id => fetchTask(id)))
-            .then(results => setTasks(results.filter(Boolean)))
+              .then(results => setTasks(results.filter(Boolean)))
+
             .finally(() => setLoading(false));
     }, [bookmarks]);
 
-    return (
+    return   (
         <div className="dash-page-container">
 
-            {/* Breadcrumb */}
+            
             <div style={{ marginBottom: 20 }}>
                 <Link href="/dashboard/freelancer" style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -48,15 +50,15 @@ export default function BookmarksPage() {
                     onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
                 >
                     <ArrowLeft width={14} height={14} /> Back to Dashboard
-                </Link>
+                 </Link>
             </div>
 
-            {/* Header */}
+            
             <div style={{ marginBottom: 32 }}>
                 <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
                     Saved{' '}
                     <span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Bookmarks
+                          Bookmarks
                     </span>
                 </h1>
                 <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
@@ -66,7 +68,7 @@ export default function BookmarksPage() {
 
             {/* Loading */}
             {loading && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', flexDirection: 'column', gap: 16 }}>
+                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', flexDirection: 'column', gap: 16 }}>
                     <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2.5px solid rgba(255,77,0,0.2)', borderTopColor: '#ff4d00', animation: 'spin 0.75s linear infinite' }} />
                     <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>LOADING BOOKMARKS</span>
                     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -76,11 +78,12 @@ export default function BookmarksPage() {
             {/* Empty state */}
             {!loading && tasks.length === 0 && (
                 <div style={{
-                    background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)',
+                       background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)',
                     borderRadius: 20, padding: '64px 32px', textAlign: 'center',
+
                 }}>
                     <div style={{
-                        width: 64, height: 64, borderRadius: 18, margin: '0 auto 20px',
+                           width: 64, height: 64, borderRadius: 18, margin: '0 auto 20px',
                         background: 'rgba(255,179,0,0.07)', border: '1px solid rgba(255,179,0,0.18)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28,
                     }}>🔖</div>
@@ -92,7 +95,7 @@ export default function BookmarksPage() {
                         display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px',
                         borderRadius: 12, background: 'linear-gradient(135deg,#ff4d00,#cc3d00)',
                         color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 700,
-                        boxShadow: '0 4px 18px rgba(255,77,0,0.25)',
+                         boxShadow: '0 4px 18px rgba(255,77,0,0.25)',
                     }}>
                         Browse Tasks
                     </Link>
@@ -100,33 +103,37 @@ export default function BookmarksPage() {
             )}
 
             {/* Task grid */}
-            {!loading && tasks.length > 0 && (
+              {!loading && tasks.length > 0 && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 18 }}>
                     {tasks.map(task => (
-                        <div
+                         <div
+
                             key={task._id}
+
                             style={{
                                 background: 'rgba(255,255,255,0.015)',
-                                border: '1px solid rgba(255,255,255,0.06)',
+                                  border: '1px solid rgba(255,255,255,0.06)',
                                 borderRadius: 18, padding: '22px',
                                 display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                                transition: 'all 0.2s', cursor: 'pointer',
-                                position: 'relative',
+                                  transition: 'all 0.2s', cursor: 'pointer',
+                                  position: 'relative',
                             }}
                             onClick={() => setSelectedTask(task)}
                             onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,77,0,0.2)'}
+
                             onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
                         >
-                            {/* Remove bookmark */}
+                             {/* Remove bookmark */}
                             <button
                                 type="button"
                                 onClick={e => { e.stopPropagation(); toggleBookmark(task._id); }}
                                 title="Remove bookmark"
                                 style={{
-                                    position: 'absolute', top: 14, right: 14,
+                                     position: 'absolute', top: 14, right: 14,
                                     width: 28, height: 28, borderRadius: 8,
                                     border: '1px solid rgba(255,160,0,0.3)',
                                     background: 'rgba(255,160,0,0.1)',
+
                                     color: '#ffb300',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     cursor: 'pointer', transition: 'all 0.18s',
@@ -153,11 +160,12 @@ export default function BookmarksPage() {
                                 }}>
                                     {task.description}
                                 </p>
-                            </div>
+                               </div>
 
                             <div>
                                 <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '16px 0' }} />
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
                                     <span style={{ fontSize: 16, fontWeight: 800, color: '#ff4d00' }}>
                                         ${Number(task.budget).toLocaleString()}
                                     </span>
@@ -166,18 +174,19 @@ export default function BookmarksPage() {
                                         background: 'rgba(255,77,0,0.08)', border: '1px solid rgba(255,77,0,0.2)',
                                         padding: '4px 10px', borderRadius: 8,
                                     }}>
-                                        View Details →
+                                           View Details →
                                     </span>
                                 </div>
                             </div>
                         </div>
                     ))}
+
                 </div>
             )}
 
-            {/* Task detail modal */}
+            
             {selectedTask && (
-                <TaskDetailModal
+                 <TaskDetailModal
                     task={selectedTask}
                     onClose={() => setSelectedTask(null)}
                 />

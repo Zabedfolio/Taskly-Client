@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -7,27 +8,45 @@ import { Briefcase, ArrowLeft, TrashBin } from '@gravity-ui/icons';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
-export default function AdminTasksPage() {
+export default function  AdminTasksPage() {
     const { data: session, isPending } = useSession();
     const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [deletingId, setDeletingId] = useState(null);
+    const  [loading, setLoading] = useState(true);
+    const  [deletingId, setDeletingId] = useState(null);
+    const [search, setSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search]);
+
+    const filteredTasks = tasks.filter(t => 
+        (t.title || '').toLowerCase().includes(search.toLowerCase()) ||
+        (t.category || '').toLowerCase().includes(search.toLowerCase()) ||
+        (t._id || '').toLowerCase().includes(search.toLowerCase())
+    );
+
+    const limit = 10;
+    const totalPages = Math.ceil(filteredTasks.length / limit) || 1;
+    const paginatedTasks = filteredTasks.slice((currentPage - 1) * limit, currentPage * limit);
 
     useEffect(() => {
         if (isPending) return;
         if (!session?.session?.token) {
-            setLoading(false);
+             setLoading(false);
             return;
-        }
+         }
         async function load() {
             try {
-                const data = await getAllTasks();
+                 const data = await getAllTasks();
                 setTasks(data || []);
+                setCurrentPage(1);
             } catch (err) {
-                console.error(err);
+                  console.error(err);
             } finally {
                 setLoading(false);
-            }
+
+               }
         }
         load();
     }, [session, isPending]);
@@ -35,6 +54,7 @@ export default function AdminTasksPage() {
     const handleDelete = async (taskId) => {
         if (!session?.session?.token) return;
         if (!confirm('Are you sure you want to delete this task? This action cannot be undone.')) return;
+
         try {
             setDeletingId(taskId);
             await deleteTask(taskId, session.session.token);
@@ -44,45 +64,67 @@ export default function AdminTasksPage() {
             toast.error(err.message);
         } finally {
             setDeletingId(null);
-        }
+         }
     };
 
+
     if (isPending || loading) {
-        return (
+        return   (
+
             <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2.5px solid rgba(255,77,0,0.2)', borderTopColor: '#ff4d00', animation: 'spin 0.75s linear infinite' }} />
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', letterSpacing: '0.1em' }}>LOADING TASKS</span>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
         );
+
     }
 
     const statusColors = {
         open: { color: '#22c55e', bg: 'rgba(34,197,94,0.06)', border: 'rgba(34,197,94,0.2)' },
         'in-progress': { color: '#eab308', bg: 'rgba(234,179,8,0.06)', border: 'rgba(234,179,8,0.2)' },
+
         completed: { color: '#06b6d4', bg: 'rgba(6,182,212,0.06)', border: 'rgba(6,182,212,0.2)' },
         closed: { color: '#ef4444', bg: 'rgba(239,68,68,0.06)', border: 'rgba(239,68,68,0.2)' },
     };
 
-    return (
+    return   (
         <div className="dash-page-container">
 
 
             <div style={{ marginBottom: 20 }}>
-                <Link href="/dashboard/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}
+                   <Link href="/dashboard/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: 13, transition: 'color 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.color = '#ff4d00'}
                     onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}>
                     <ArrowLeft width={14} height={14} /> Back to Dashboard
                 </Link>
             </div>
 
-            <div style={{ marginBottom: 32 }}>
-                <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
-                    Manage <span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tasks</span>
-                </h1>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
-                    Review all posted tasks. Remove any that violate platform guidelines.
-                </p>
+            <div style={{ marginBottom: 32, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                <div>
+                    <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 8px' }}>
+                        Manage <span style={{ background: 'linear-gradient(135deg,#ff4d00,#ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tasks</span>
+                    </h1>
+                    <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                        Review all posted tasks. Remove any that violate platform guidelines.
+                    </p>
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search tasks…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{
+                        padding: '9px 14px',
+                        borderRadius: 10,
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.09)',
+                        color: '#fff',
+                        fontSize: 13,
+                        outline: 'none',
+                        width: 220,
+                    }}
+                />
             </div>
 
             {tasks.length === 0 ? (
@@ -91,6 +133,7 @@ export default function AdminTasksPage() {
                     <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>No tasks found</h3>
                     <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.35)' }}>There are no tasks on the platform yet.</p>
                 </div>
+
             ) : (
                 <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, overflow: 'hidden' }}>
                     <div style={{ overflowX: 'auto' }}>
@@ -100,24 +143,27 @@ export default function AdminTasksPage() {
                                     <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Task Title</th>
                                     <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Category</th>
                                     <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Posted By</th>
-                                    <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Budget</th>
+                                       <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Budget</th>
                                     <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)' }}>Status</th>
                                     <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.5)', textAlign: 'right' }}>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {tasks.map((task, idx) => {
+
+                                {paginatedTasks.map((task, idx) => {
                                     const sNormalized = (task.status || '').toLowerCase().replace('_', '-');
                                     const st = statusColors[sNormalized] || statusColors.open;
                                     return (
                                         <tr key={task._id} style={{
-                                            borderBottom: idx < tasks.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                                            borderBottom: idx < paginatedTasks.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                                             transition: 'background 0.2s',
                                         }}
                                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.015)'}
                                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+
                                         >
-                                            <td style={{ padding: '18px 24px' }}>
+
+                                             <td style={{ padding: '18px 24px' }}>
                                                 <div style={{ fontSize: 13.5, fontWeight: 700, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {task.title}
                                                 </div>
@@ -129,13 +175,14 @@ export default function AdminTasksPage() {
                                             <td style={{ padding: '18px 24px' }}>
                                                 <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.7)' }}>{task.clientName || '—'}</div>
                                                 <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.3)' }}>{task.clientEmail || ''}</div>
+
                                             </td>
                                             <td style={{ padding: '18px 24px', fontSize: 13, fontWeight: 800, color: '#ff4d00' }}>${task.budget || 0}</td>
                                             <td style={{ padding: '18px 24px' }}>
                                                 <span style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 99,
                                                     fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'monospace',
-                                                    color: st.color, background: st.bg, border: `1px solid ${st.border}`
+                                                     color: st.color, background: st.bg, border: `1px solid ${st.border}`
                                                 }}>
                                                     <span style={{ width: 5, height: 5, borderRadius: '50%', background: st.color }} />
                                                     {task.status || 'open'}
@@ -151,18 +198,76 @@ export default function AdminTasksPage() {
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
                                                     }}
                                                     title="Delete Task"
-                                                    onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+                                                       onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#ef4444'; }}
                                                 >
+
                                                     <TrashBin width={14} height={14} />
                                                 </button>
-                                            </td>
+                                               </td>
                                         </tr>
                                     );
+
                                 })}
+                                {filteredTasks.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} style={{ padding: '40px 24px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
+                                            No tasks found matching &ldquo;{search}&rdquo;
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
+                    {totalPages > 1 && (
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 16,
+                            padding: '16px 24px',
+                            borderTop: '1px solid rgba(255,255,255,0.06)',
+                            background: 'rgba(255,255,255,0.01)',
+                        }}>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                style={{
+                                    padding: '6px 12px',
+                                    borderRadius: 8,
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    background: currentPage === 1 ? 'transparent' : 'rgba(255,77,0,0.08)',
+                                    color: currentPage === 1 ? 'rgba(255,255,255,0.25)' : '#ff4d00',
+                                    fontSize: 12.5,
+                                    fontWeight: 600,
+                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                Previous
+                            </button>
+                            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                    padding: '6px 12px',
+                                    borderRadius: 8,
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    background: currentPage === totalPages ? 'transparent' : 'rgba(255,77,0,0.08)',
+                                    color: currentPage === totalPages ? 'rgba(255,255,255,0.25)' : '#ff4d00',
+                                    fontSize: 12.5,
+                                    fontWeight: 600,
+                                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

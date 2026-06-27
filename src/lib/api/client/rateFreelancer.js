@@ -3,7 +3,7 @@ import { saveFreelancerRatingLocally } from '@/lib/freelancerRatings';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function rateFreelancer({
-    taskId,
+     taskId,
     freelancerEmail,
     stars,
     review,
@@ -21,10 +21,10 @@ export async function rateFreelancer({
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify(payload),
-        });
+           });
 
         const data = await res.json().catch(() => ({}));
 
@@ -35,7 +35,7 @@ export async function rateFreelancer({
                 stars,
                 review: payload.review,
             });
-            return { ok: true, source: 'api', rating: data };
+            return   { ok: true, source: 'api', rating: data };
         }
 
         if (data.error) {
@@ -63,11 +63,11 @@ export async function rateFreelancer({
     return { ok: true, source: 'local' };
 }
 
-/** Fetch all freelancer ratings submitted by this client. */
+
 export async function fetchMyFreelancerRatings(email) {
     if (!email) return [];
 
-    const res = await fetch(`${BASE_URL}/api/freelancer-ratings?clientEmail=${encodeURIComponent(email)}`);
+    const  res = await fetch(`${BASE_URL}/api/freelancer-ratings?clientEmail=${encodeURIComponent(email)}`);
 
     if (!res.ok) return [];
     const data = await res.json();
