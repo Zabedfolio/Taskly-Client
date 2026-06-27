@@ -3,10 +3,9 @@ import { Mail } from "lucide-react";
 
 const footerLinks = [
   { label: "Home", href: "/" },
-  { label: "Browse Tasks", href: "/tasks" },
+  { label: "Browse Tasks", href: "/browse" },
   { label: "Browse Freelancers", href: "/freelancers" },
   { label: "Dashboard", href: "/dashboard" },
-    { label: "Profile", href: "/profile" },
 ];
 
 const socialLinks = [
